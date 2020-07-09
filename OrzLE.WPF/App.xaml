@@ -5,6 +5,15 @@
     xmlns:trisome="https://yanshouwang.dev/trisome"
     x:Class="OrzLE.WPF.App">
     <Application.Resources>
-
+        <Style TargetType="ListView">
+            <Style.Setters>
+                <Setter Property="BorderThickness" Value="0.5"/>
+            </Style.Setters>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Style.Setters>
+                <Setter Property="FontFamily" Value="Consolas"/>
+            </Style.Setters>
+        </Style>
     </Application.Resources>
 </trisome:BaseApplication>

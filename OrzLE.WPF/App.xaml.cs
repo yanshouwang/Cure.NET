@@ -1,7 +1,10 @@
-﻿using OrzLE.WPF.Views;
+﻿using OrzLE.WPF.ViewModels;
+using OrzLE.WPF.Views;
 using System.Windows;
 using Trisome.Core.IoC;
 using Trisome.DryIoC.WPF;
+using Trisome.WPF.IoC;
+using Trisome.WPF.Services;
 
 namespace OrzLE.WPF
 {
@@ -13,9 +16,17 @@ namespace OrzLE.WPF
         protected override Window CreateShell()
             => Container.Resolve<ShellView>();
 
-        protected override void RegisterTypes(IContainerRegistry containerRegistry)
+        protected override void RegisterTypes(IContainerRegistry container)
         {
-            throw new System.NotImplementedException();
+            container.RegisterForNavigation<WatcherView>();
+            container.RegisterForNavigation<DeviceView>();
+        }
+
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+
+            NavigationService.Navigate<WatcherViewModel>("Shell");
         }
     }
 }

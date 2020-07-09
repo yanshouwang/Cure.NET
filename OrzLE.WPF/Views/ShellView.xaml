@@ -7,6 +7,5 @@
         xmlns:trisome="https://yanshouwang.dev/trisome"
         mc:Ignorable="d"
         Title="OrzLE - Shell" Height="450" Width="800"
-        trisome:ViewModelLocator.AutoWireViewModel="True"
         trisome:RegionManager.RegionName="Shell">
 </Window>
