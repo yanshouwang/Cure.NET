@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ATooth.WPF.Services;
+using DryIoc;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -17,30 +19,30 @@ namespace ATooth.WPF.ViewModels
 {
     class DeviceViewModel : BaseViewModel
     {
-        ulong _address;
+        short _rssi;
         BluetoothLEDevice _device;
         GattDeviceService _communicationService;
         GattCharacteristic _notifyCharacteristic;
         GattCharacteristic _writeCharacteristic;
 
-        IContainerProvider Container { get; }
+        ulong Address { get; }
+        ILogService LogService { get; }
+        public DeviceCategory Category { get; }
         public short VId { get; }
         public short PId { get; }
         public byte MId { get; }
         public string MAC { get; }
         public byte MTU => 20;
-        Guid CommunicationId { get; }
-        Guid NotifyId { get; }
-        Guid WriteId { get; }
-        public IList<LogViewModel> Logs { get; }
+        Guid CommunicationUUID { get; }
+        Guid NotifyUUID { get; }
+        Guid WriteUUID { get; }
         bool CanWriteWithResponse
-            => _writeCharacteristic?.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write) ?? false;
+            => _writeCharacteristic != null && _writeCharacteristic.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write);
         bool CanWriteWithoutResponse
-            => _writeCharacteristic?.CharacteristicProperties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse) ?? false;
-        bool CanWrite
+            => _writeCharacteristic != null && _writeCharacteristic.CharacteristicProperties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse);
+        public bool CanWrite
             => CanWriteWithResponse || CanWriteWithoutResponse;
 
-        private short _rssi;
         public short RSSI
         {
             get { return _rssi; }
@@ -54,29 +56,20 @@ namespace ATooth.WPF.ViewModels
             set { SetProperty(ref _connected, value); }
         }
 
-        public DeviceViewModel(INavigationService navigationService, IContainerProvider container, ulong address, short vid, short pid, byte mid, string mac, short rssi)
+        public DeviceViewModel(INavigationService navigationService, ILogService logService, DeviceArgs args)
             : base(navigationService)
         {
-            _address = address;
-
-            Container = container;
-            VId = vid;
-            PId = pid;
-            MId = mid;
-            MAC = mac;
-            RSSI = rssi;
-
-            CommunicationId = UUID.GetCommunicationId(vid, pid, mid);
-            NotifyId = UUID.GetNotityId(vid, pid, mid);
-            WriteId = UUID.GetWriteId(vid, pid, mid);
-
-            Logs = new ObservableCollection<LogViewModel>();
-        }
-
-        public override bool IsNavigationTarget(NavigationContext context)
-        {
-            var mac = (string)context.Args["MAC"];
-            return mac == MAC;
+            LogService = logService;
+            Category = args.Category;
+            Address = args.Address;
+            RSSI = args.RSSI;
+            VId = args.VId;
+            PId = args.PId;
+            MId = args.MId;
+            MAC = args.MAC;
+            CommunicationUUID = args.CommunicatonUUID;
+            NotifyUUID = args.NotifyUUID;
+            WriteUUID = args.WriteUUID;
         }
 
         DelegateCommand _connectCommand;
@@ -89,33 +82,48 @@ namespace ATooth.WPF.ViewModels
 
         async void ExecuteConnectCommand()
         {
-            _device = await BluetoothLEDevice.FromBluetoothAddressAsync(_address);
+            _device = await BluetoothLEDevice.FromBluetoothAddressAsync(Address);
             _device.ConnectionStatusChanged += OnConnectionStateChanged;
-            var r1 = await _device.GetGattServicesForUuidAsync(CommunicationId);
-            if (r1.Status != GattCommunicationStatus.Success)
+            var r1 = await _device.GetGattServicesForUuidAsync(CommunicationUUID);
+            if (r1.Status != GattCommunicationStatus.Success || r1.Services.Count == 0)
             {
-                throw new NotImplementedException();
+                LogService.Log("获取服务失败");
+                ExecuteDisconnectCommand();
+                return;
             }
             _communicationService = r1.Services[0];
-            var r2 = await _communicationService.GetCharacteristicsForUuidAsync(NotifyId);
-            if (r2.Status != GattCommunicationStatus.Success)
+            var r2 = await _communicationService.GetCharacteristicsForUuidAsync(NotifyUUID);
+            if (r2.Status != GattCommunicationStatus.Success || r2.Characteristics.Count == 0)
             {
-                throw new NotImplementedException();
+                LogService.Log("获取通知特征值失败");
+                ExecuteDisconnectCommand();
+                return;
             }
             _notifyCharacteristic = r2.Characteristics[0];
             _notifyCharacteristic.ValueChanged += OnValueChanged;
-            var r3 = await _communicationService.GetCharacteristicsForUuidAsync(WriteId);
-            if (r3.Status != GattCommunicationStatus.Success)
+            var r3 = await _communicationService.GetCharacteristicsForUuidAsync(WriteUUID);
+            if (r3.Status != GattCommunicationStatus.Success || r3.Characteristics.Count == 0)
             {
-                throw new NotImplementedException();
+                LogService.Log("获取写入特征值失败");
+                ExecuteDisconnectCommand();
+                return;
             }
             _writeCharacteristic = r3.Characteristics[0];
             RaisePropertyChanged(nameof(CanWrite));
             // 开启通知
-            var status = await _notifyCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-            if (status != GattCommunicationStatus.Success)
+            try
             {
-                throw new NotImplementedException();
+                var status = await _notifyCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
+                if (status != GattCommunicationStatus.Success)
+                {
+                    LogService.Log("开启通知失败");
+                    ExecuteDisconnectCommand();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Log($"开启通知失败 {ex.Message}");
+                ExecuteDisconnectCommand();
             }
         }
 
@@ -153,14 +161,12 @@ namespace ATooth.WPF.ViewModels
 
         private async void DealWithStr(string str)
         {
-            var a0 = (typeof(string), "RECEIVE");
-            var a1 = (str.GetType(), str);
-            var log = Container.Resolve<LogViewModel>(a0, a1);
-            Application.Current.Dispatcher.Invoke(() => Logs.Add(log));
+            var message = $"RECEIVE : {str}";
+            LogService.Log(message);
             // 握手
             if (str == "CODE?")
             {
-                await WriteAsync("@GrzBLE");
+                await WriteAsync("@ATooth");
             }
         }
 
@@ -172,15 +178,37 @@ namespace ATooth.WPF.ViewModels
         bool CanExecuteDisconnectCommand()
             => Connected;
 
-        void ExecuteDisconnectCommand()
+        async void ExecuteDisconnectCommand()
         {
-            _notifyCharacteristic = null;
+            if (_notifyCharacteristic != null)
+            {
+                try
+                {
+                    var status = await _notifyCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.None);
+                    if (status != GattCommunicationStatus.Success)
+                    {
+                        LogService.Log("关闭通知失败");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.Log(ex.Message);
+                }
+                _notifyCharacteristic.ValueChanged -= OnValueChanged;
+                _notifyCharacteristic = null;
+                _buffer = null;
+            }
             _writeCharacteristic = null;
-            _communicationService.Dispose();
-            _communicationService = null;
+            if (_communicationService != null)
+            {
+                _communicationService.Dispose();
+                _communicationService = null;
+            }
             _device.Dispose();
             _device = null;
             Connected = false;
+            RaisePropertyChanged(nameof(CanWrite));
+            _buffer = null;
         }
 
         DelegateCommand<string> _writeCommand;
@@ -224,10 +252,8 @@ namespace ATooth.WPF.ViewModels
                     return false;
             }
 
-            var a0 = (typeof(string), "SEND");
-            var a1 = (str.GetType(), str);
-            var log = Container.Resolve<LogViewModel>(a0, a1);
-            Application.Current.Dispatcher.Invoke(() => Logs.Add(log));
+            var message = $"SEND : {str}";
+            LogService.Log(message);
 
             return true;
         }

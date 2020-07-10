@@ -1,4 +1,5 @@
-﻿using ATooth.WPF.ViewModels;
+﻿using ATooth.WPF.Services;
+using ATooth.WPF.ViewModels;
 using ATooth.WPF.Views;
 using System.Windows;
 using Trisome.Core.IoC;
@@ -16,10 +17,11 @@ namespace ATooth.WPF
         protected override Window CreateShell()
             => Container.Resolve<ShellView>();
 
-        protected override void RegisterTypes(IContainerRegistry containerRegistry)
+        protected override void RegisterTypes(IContainerRegistry container)
         {
-            containerRegistry.RegisterForNavigation<WatcherView>();
-            containerRegistry.RegisterForNavigation<DeviceView>();
+            container.RegisterSingleton<ILogService, DebugLogService>();
+            container.RegisterForNavigation<WatcherView>();
+            container.RegisterForNavigation<TestView>();
         }
 
         protected override void OnInitialized()

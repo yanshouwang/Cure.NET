@@ -1,10 +1,6 @@
-﻿using DryIoc;
-using OrzLE.WPF.Models;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using Trisome.WPF.MVVM;
 using Trisome.WPF.Regions;
@@ -17,7 +13,7 @@ namespace OrzLE.WPF.ViewModels
     {
         readonly BluetoothLEAdvertisementWatcher _watcher;
 
-        public IList<DeviceModel> Devices { get; }
+        public ICollection<DeviceViewModel> Devices { get; }
 
         public WatcherViewModel(INavigationService navigationService)
             : base(navigationService)
@@ -25,7 +21,7 @@ namespace OrzLE.WPF.ViewModels
             _watcher = new BluetoothLEAdvertisementWatcher();
             _watcher.Received += OnWatcherReceived;
 
-            Devices = new ObservableCollection<DeviceModel>();
+            Devices = new ObservableCollection<DeviceViewModel>();
         }
 
         void OnWatcherReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
@@ -42,7 +38,7 @@ namespace OrzLE.WPF.ViewModels
             }
             else
             {
-                device = new DeviceModel(address, name, rssi);
+                device = new DeviceViewModel(NavigationService, address, name, rssi);
                 Application.Current.Dispatcher.Invoke(() => Devices.Add(device));
             }
         }

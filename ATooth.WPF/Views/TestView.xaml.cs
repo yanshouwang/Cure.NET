@@ -16,9 +16,9 @@ namespace ATooth.WPF.Views
     /// <summary>
     /// DeviceView.xaml 的交互逻辑
     /// </summary>
-    public partial class DeviceView : Page
+    public partial class TestView : Page
     {
-        public DeviceView()
+        public TestView()
         {
             InitializeComponent();
         }

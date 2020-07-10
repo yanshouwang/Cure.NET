@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:OrzLE.WPF.Views"
       xmlns:trisome="https://yanshouwang.dev/trisome"
       xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-      xmlns:m="clr-namespace:OrzLE.WPF.Models"
+      xmlns:vm="clr-namespace:OrzLE.WPF.ViewModels"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       trisome:ViewModelLocator.AutoWireViewModel="True"
@@ -17,7 +17,7 @@
                 <trisome:SelectorTapBehavior ClickCommand="{Binding NavigateToDeviceCommand}"/>
             </i:Interaction.Behaviors>
             <ListView.ItemTemplate>
-                <DataTemplate DataType="m:DeviceModel">
+                <DataTemplate DataType="vm:DeviceViewModel">
                     <Grid Margin="4" Height="48">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="48"/>

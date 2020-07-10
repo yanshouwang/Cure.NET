@@ -5,20 +5,13 @@
              xmlns:trisome="https://yanshouwang.dev/trisome">
     <Application.Resources>
         <Style TargetType="ListView">
-            <Style.Setters>
-                <Setter Property="BorderBrush" Value="Black"/>
-                <Setter Property="BorderThickness" Value="0.5"/>
-            </Style.Setters>
+            <Setter Property="BorderThickness" Value="0.5"/>
         </Style>
         <Style TargetType="TextBlock">
-            <Style.Setters>
-                <Setter Property="FontFamily" Value="Consolas"/>
-            </Style.Setters>
+            <Setter Property="FontFamily" Value="Consolas"/>
         </Style>
-        <Style TargetType="Window">
-            <Style.Setters>
-                <Setter Property="Padding" Value="12"/>
-            </Style.Setters>
+        <Style TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Consolas"/>
         </Style>
     </Application.Resources>
 </trisome:BaseApplication>

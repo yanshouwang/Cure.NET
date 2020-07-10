@@ -7,10 +7,14 @@
       xmlns:trisome="https://yanshouwang.dev/trisome"
       xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
       xmlns:vm="clr-namespace:ATooth.WPF.ViewModels"
+      xmlns:converters="clr-namespace:ATooth.WPF.Converters"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       trisome:ViewModelLocator.AutoWireViewModel="True"
       WindowTitle="ATooth - Watcher">
+    <Page.Resources>
+        <converters:DeviceCategoryToImageSourceConverter x:Key="DeviceCategoryToImageSourceConverter"/>
+    </Page.Resources>
     <Grid Margin="4">
         <ListView ItemsSource="{Binding Devices}" HorizontalContentAlignment="Stretch">
             <i:Interaction.Behaviors>
@@ -20,17 +24,15 @@
                 <DataTemplate DataType="vm:DeviceViewModel">
                     <Grid Margin="4">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="28"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Image Source="/Assets/device.png"/>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="{Binding VId, StringFormat='VId : {0:X4}'}"/>
-                            <TextBlock Text="{Binding PId, StringFormat='PId : {0:X4}'}"/>
-                            <TextBlock Text="{Binding MId, StringFormat='MId : {0}'}"/>
+                        <Image Source="{Binding Category, Converter={StaticResource DeviceCategoryToImageSourceConverter}}"/>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Category}" FontSize="16"/>
                             <TextBlock Text="{Binding MAC, StringFormat='MAC : {0}'}"/>
                         </StackPanel>
                         <TextBlock Grid.Column="4" Text="{Binding RSSI, StringFormat='RSSI : {0}'}" VerticalAlignment="Center"/>

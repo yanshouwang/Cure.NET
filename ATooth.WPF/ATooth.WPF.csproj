@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\APC2.png" />
+    <None Remove="Assets\ATC.png" />
     <None Remove="Assets\device.png" />
+    <None Remove="Assets\PGC.png" />
+    <None Remove="Assets\UTC.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +23,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\APC2.png" />
+    <Resource Include="Assets\ATC.png" />
     <Resource Include="Assets\device.png" />
+    <Resource Include="Assets\PGC.png" />
+    <Resource Include="Assets\UTC.png" />
   </ItemGroup>
 
 </Project>

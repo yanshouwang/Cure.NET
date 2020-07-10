@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ATooth.WPF.Services;
+using DryIoc;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -19,19 +21,18 @@ namespace ATooth.WPF.ViewModels
     {
         readonly BluetoothLEAdvertisementWatcher _watcher;
 
-        IContainerProvider Container { get; }
+        ILogService LogService { get; }
         public IList<DeviceViewModel> Devices { get; }
 
-        public WatcherViewModel(INavigationService navigationService, IContainerProvider container)
+        public WatcherViewModel(INavigationService navigationService, ILogService logService)
             : base(navigationService)
         {
+            LogService = logService;
+
             _watcher = new BluetoothLEAdvertisementWatcher();
             _watcher.Received += OnWatcherReceived;
 
-            Container = container;
             Devices = new ObservableCollection<DeviceViewModel>();
-
-            _watcher.Start();
         }
 
         private void OnWatcherReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
@@ -50,7 +51,7 @@ namespace ATooth.WPF.ViewModels
                 Array.Reverse(data1);
                 var uuidStr = BitConverter.ToString(data1).Replace("-", string.Empty);
                 var uuid = Guid.Parse(uuidStr);
-                if (uuid != UUID.ATC_CUSTOM_SERVICE && uuid != UUID.UTC_CUSTOM_SERVICE)
+                if (!DeviceUtils.Valid(uuid))
                     return;
                 CryptographicBuffer.CopyToByteArray(nameSection.Data, out var data2);
                 var mixed = Encoding.ASCII.GetString(data2);
@@ -97,31 +98,24 @@ namespace ATooth.WPF.ViewModels
                 var midArray = new byte[1];
                 Array.Copy(data, 4, midArray, 0, midArray.Length);
                 mid = midArray[0];
+                if (!DeviceUtils.Valid(vid, pid, mid))
+                    return;
                 // MAC
                 var macArray = new byte[6];
                 Array.Copy(data, 5, macArray, 0, macArray.Length);
                 mac = BitConverter.ToString(macArray).Replace('-', ':');
             }
-
-            Application.Current.Dispatcher.Invoke(() =>
+            var deviceModel = Devices.FirstOrDefault(i => i.MAC == mac);
+            if (deviceModel != null)
             {
-                var deviceModel = Devices.FirstOrDefault(i => i.MAC == mac);
-                if (deviceModel != null)
-                {
-                    deviceModel.RSSI = args.RawSignalStrengthInDBm;
-                }
-                else
-                {
-                    var a0 = (args.BluetoothAddress.GetType(), args.BluetoothAddress);
-                    var a1 = (vid.GetType(), vid);
-                    var a2 = (vid.GetType(), pid);
-                    var a3 = (vid.GetType(), mid);
-                    var a4 = (vid.GetType(), mac);
-                    var a5 = (args.RawSignalStrengthInDBm.GetType(), args.RawSignalStrengthInDBm);
-                    deviceModel = Container.Resolve<DeviceViewModel>(a0, a1, a2, a3, a4, a5);
-                    Devices.Add(deviceModel);
-                }
-            });
+                deviceModel.RSSI = args.RawSignalStrengthInDBm;
+            }
+            else
+            {
+                var deviceArgs = DeviceUtils.GetArgs(args.BluetoothAddress, args.RawSignalStrengthInDBm, vid, pid, mid, mac);
+                deviceModel = new DeviceViewModel(NavigationService, LogService, deviceArgs);
+                Application.Current.Dispatcher.Invoke(() => Devices.Add(deviceModel));
+            }
         }
 
         public override void OnNavigatedTo(NavigationContext context)
@@ -144,8 +138,8 @@ namespace ATooth.WPF.ViewModels
 
         void ExecuteNavigateToDeviceCommand(DeviceViewModel device)
         {
-            var args = new Dictionary<string, object> { ["MAC"] = device.MAC };
-            NavigationService.Navigate<DeviceViewModel>("Shell", args);
+            var args = new Dictionary<string, object> { ["Device"] = device };
+            NavigationService.Navigate<TestViewModel>("Shell", args);
         }
     }
 }

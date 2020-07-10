@@ -9,6 +9,12 @@ namespace Trisome.WPF.MVVM
     {
         IRegionNavigationJournal _journal;
 
+        bool CanGoBack
+            => _journal != null && _journal.CanGoBack;
+
+        bool CanGoForward
+            => _journal != null && _journal.CanGoForward;
+
         protected INavigationService NavigationService { get; }
 
         public BaseViewModel(INavigationService navigationService)
@@ -18,26 +24,32 @@ namespace Trisome.WPF.MVVM
 
         DelegateCommand _goBackCommand;
         public DelegateCommand GoBackCommand
-            => _goBackCommand ??= new DelegateCommand(ExecuteGoBackCommand, CanExecuteGoBackCommand);
+            => _goBackCommand ??= new DelegateCommand(ExecuteGoBackCommand, CanExecuteGoBackCommand)
+            .ObservesProperty(() => CanGoBack);
 
         bool CanExecuteGoBackCommand()
-           => _journal != null && _journal.CanGoBack;
+           => CanGoBack;
 
         void ExecuteGoBackCommand()
             => _journal.GoBack();
 
         DelegateCommand _goForwardCommand;
         public DelegateCommand GoForwardCommand
-            => _goForwardCommand ??= new DelegateCommand(ExecuteGoForwardCommand, CanExecuteGoForwardCommand);
+            => _goForwardCommand ??= new DelegateCommand(ExecuteGoForwardCommand, CanExecuteGoForwardCommand)
+            .ObservesProperty(() => CanGoForward);
 
         bool CanExecuteGoForwardCommand()
-           => _journal != null && _journal.CanGoForward;
+           => CanGoForward;
 
         void ExecuteGoForwardCommand()
             => _journal.GoForward();
 
         public virtual void OnNavigatedTo(NavigationContext context)
-            => _journal = context.NavigationService.Journal;
+        {
+            _journal = context.NavigationService.Journal;
+            RaisePropertyChanged(nameof(CanGoBack));
+            RaisePropertyChanged(nameof(CanGoForward));
+        }
 
         public virtual bool IsNavigationTarget(NavigationContext context)
             => true;
