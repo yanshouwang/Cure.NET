@@ -9,7 +9,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       trisome:ViewModelLocator.AutoWireViewModel="True"
-      WindowTitle="AWatcher - Device">
+      WindowTitle="ATooth - Test">
     <Page.Resources>
         <converters:IntervalToStringConverter x:Key="IntervalToStringConverter"/>
     </Page.Resources>
