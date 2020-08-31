@@ -1,21 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Windows.Media;
 
 namespace Cure.WPF.Media
 {
     class GeometryValue
     {
-        public int FillRule { get; }
+        public string FillRule { get; }
 
-        public GeometryValue(int fillRule)
+        public IList<GeometryCommand> Commands { get; }
+
+        public GeometryValue(string fillRule, IList<GeometryCommand> commands)
         {
             FillRule = fillRule;
+            Commands = commands;
         }
 
-        public static GeometryValue operator +(GeometryValue left, GeometryValue right)
+        public override string ToString()
         {
-            return left;
+            return Commands.Aggregate(FillRule, (total, next) => $"{total} {next}").TrimStart();
         }
     }
 }

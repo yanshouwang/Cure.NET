@@ -17,7 +17,7 @@ namespace Cure.WPF.Media
 
         public override string ToString()
         {
-            var args = Args.Aggregate(string.Empty, (total, next) => $"{total} {next}");
+            var args = Args.Aggregate(string.Empty, (total, next) => $"{total} {next}").TrimStart();
             return $"{Command}{args}";
         }
     }

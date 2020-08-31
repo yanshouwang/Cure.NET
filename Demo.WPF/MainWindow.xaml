@@ -89,19 +89,37 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <cure:GeometryAnimation From="F1 M10,10 L60,10 L60,20 L10,20 Z M10,30 L60,30 L60,40 L10,40 Z M10,50 L60,50 L60,60 L10,60 Z"
-                                                 To="F1 M5,35 L40,0 L47.072,7.072 L12.072,42.072 Z M10,30 L60,30 L60,40 L10,40 Z M12.072,27.928 L47.072,62.928 L40,70 L5,35 Z"
-                                                 Duration="0:0:1.5"
-                                                 Storyboard.TargetName="P1"
-                                                 Storyboard.TargetProperty="Data">
+                                                        To="F1 M5,35 L40,0 L47.072,7.072 L12.072,42.072 Z M10,30 L60,30 L60,40 L10,40 Z M12.072,27.928 L47.072,62.928 L40,70 L5,35 Z"
+                                                        Duration="0:0:1"
+                                                        Storyboard.TargetName="P1"
+                                                        Storyboard.TargetProperty="Data">
                                     <cure:GeometryAnimation.EasingFunction>
-                                        <BackEase/>
+                                        <CubicEase/>
                                     </cure:GeometryAnimation.EasingFunction>
                                 </cure:GeometryAnimation>
-                                <DoubleAnimation From="0" To="360" Duration="0:0:1.5"
-                                             Storyboard.TargetName="RT1"
-                                             Storyboard.TargetProperty="Angle">
+                                <DoubleAnimation From="0" To="360" Duration="0:0:1"
+                                                 Storyboard.TargetName="RT1"
+                                                 Storyboard.TargetProperty="Angle">
                                     <DoubleAnimation.EasingFunction>
-                                        <BackEase/>
+                                        <CubicEase/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <cure:GeometryAnimation From="F1 M5,35 L40,0 L47.072,7.072 L12.072,42.072 Z M10,30 L60,30 L60,40 L10,40 Z M12.072,27.928 L47.072,62.928 L40,70 L5,35 Z"
+                                                        To="F1 M10,10 L60,10 L60,20 L10,20 Z M10,30 L60,30 L60,40 L10,40 Z M10,50 L60,50 L60,60 L10,60 Z"            
+                                                        BeginTime="0:0:1.5"
+                                                        Duration="0:0:1"
+                                                        Storyboard.TargetName="P1"
+                                                        Storyboard.TargetProperty="Data">
+                                    <cure:GeometryAnimation.EasingFunction>
+                                        <CubicEase/>
+                                    </cure:GeometryAnimation.EasingFunction>
+                                </cure:GeometryAnimation>
+                                <DoubleAnimation From="-360" To="0"
+                                                 BeginTime="0:0:1.5" Duration="0:0:1"
+                                                 Storyboard.TargetName="RT1"
+                                                 Storyboard.TargetProperty="Angle">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase/>
                                     </DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
@@ -119,17 +137,35 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <cure:GeometryAnimation From="M 8 5 L 8 12 L 19 12 L 19 12 L 8 5 M 8 12 L 8 19 L 19 12 L 19 12 L 8 12"
-                                                 To="M 5 6 L 5 10 L 19 10 L 19 6 L 5 6 M 5 14 L 5 18 L 19 18 L 19 14 L 5 14"
-                                                 Duration="0:0:0.5"
-                                                 Storyboard.TargetName="P2"
-                                                 Storyboard.TargetProperty="Data">
+                                                        To="M 5 6 L 5 10 L 19 10 L 19 6 L 5 6 M 5 14 L 5 18 L 19 18 L 19 14 L 5 14"
+                                                        Duration="0:0:0.5"
+                                                        Storyboard.TargetName="P2"
+                                                        Storyboard.TargetProperty="Data">
                                     <cure:GeometryAnimation.EasingFunction>
                                         <CubicEase/>
                                     </cure:GeometryAnimation.EasingFunction>
                                 </cure:GeometryAnimation>
                                 <DoubleAnimation From="0" To="90" Duration="0:0:0.5"
-                                             Storyboard.TargetName="RT2"
-                                             Storyboard.TargetProperty="Angle">
+                                                 Storyboard.TargetName="RT2"
+                                                 Storyboard.TargetProperty="Angle">
+                                    <DoubleAnimation.EasingFunction>
+                                        <CubicEase/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <cure:GeometryAnimation From="M 5 6 L 5 10 L 19 10 L 19 6 L 5 6 M 5 14 L 5 18 L 19 18 L 19 14 L 5 14"
+                                                        To="M 8 5 L 8 12 L 19 12 L 19 12 L 8 5 M 8 12 L 8 19 L 19 12 L 19 12 L 8 12"
+                                                        BeginTime="0:0:1.0"
+                                                        Duration="0:0:0.5"
+                                                        Storyboard.TargetName="P2"
+                                                        Storyboard.TargetProperty="Data">
+                                    <cure:GeometryAnimation.EasingFunction>
+                                        <CubicEase/>
+                                    </cure:GeometryAnimation.EasingFunction>
+                                </cure:GeometryAnimation>
+                                <DoubleAnimation From="-90" To="0"
+                                                 BeginTime="0:0:1.0" Duration="0:0:0.5"
+                                                 Storyboard.TargetName="RT2"
+                                                 Storyboard.TargetProperty="Angle">
                                     <DoubleAnimation.EasingFunction>
                                         <CubicEase/>
                                     </DoubleAnimation.EasingFunction>

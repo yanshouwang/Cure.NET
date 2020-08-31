@@ -109,9 +109,12 @@ namespace Cure.WPF.Media.Animation
                 progress = EasingFunction.Ease(progress);
             }
             // from + (to - from) * progress
+            var fromValue = From.ToValue();
+            var toValue = To.ToValue();
+            var fillRule = fromValue.FillRule;
             var commands = new List<GeometryCommand>();
-            var fromCommands = From.ToCommands();
-            var toCommands = To.ToCommands();
+            var fromCommands = fromValue.Commands;
+            var toCommands = toValue.Commands;
             for (int i = 0; i < fromCommands.Count; i++)
             {
                 var fromCommand = fromCommands[i];
@@ -131,7 +134,8 @@ namespace Cure.WPF.Media.Animation
                 var command = new GeometryCommand(fromCommand.Command, args);
                 commands.Add(command);
             }
-            return commands.ToGeometry();
+            var value = new GeometryValue(fillRule, commands);
+            return value.ToGeometry();
         }
     }
 }

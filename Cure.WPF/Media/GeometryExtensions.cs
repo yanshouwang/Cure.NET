@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
@@ -10,16 +8,20 @@ namespace Cure.WPF.Media
 {
     static class GeometryExtensions
     {
-        public static IList<GeometryCommand> ToCommands(this Geometry geometry)
+        public static GeometryValue ToValue(this Geometry geometry)
         {
+            //var geo = PathGeometry.CreateFromGeometry(geometry);
             var str = geometry.ToString();
             var command = @"\w";
             var number = @"[+-]?\d+(?:\.\d+)?";
             var split = @"\s*[\s\,]\s*";
             var point = $@"{number}{split}{number}";
             var segment = $@"{command}\s*(?:{point}(?:{split}{point})*)?";
-            var pattern = $@"\A\s*(?<RULE>F[01])?\s*(?:(?<SEGMENT>{segment})\s*)*\z";
-            var captures = Regex.Match(str, pattern).Groups["SEGMENT"].Captures;
+            var pattern = $@"\A\s*(?<FILLRULE>F[01])?\s*(?:(?<SEGMENT>{segment})\s*)*\z";
+            var match = Regex.Match(str, @"[+-]?\d+(?:\.\d+)?");
+            var fillGroup = match.Groups["FILLRULE"];
+            var fillRule = fillGroup.Success ? fillGroup.Captures[0].Value : string.Empty;
+            var captures = match.Groups["SEGMENT"].Captures;
             var commands = new List<GeometryCommand>();
             foreach (Capture capture in captures)
             {
@@ -40,18 +42,8 @@ namespace Cure.WPF.Media
                 var ccc = new GeometryCommand(cmd, args);
                 commands.Add(ccc);
             }
-            return commands;
-        }
-
-        public static GeometryValue ToValue(this Geometry geometry)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static Geometry ToGeometry(this IList<GeometryCommand> commands)
-        {
-            var source = commands.Aggregate(string.Empty, (total, next) => $"{total}{next}");
-            return Geometry.Parse($"F1 {source}");
+            var value = new GeometryValue(fillRule, commands);
+            return value;
         }
     }
 }
