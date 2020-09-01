@@ -110,7 +110,7 @@ namespace Cure.WPF.Media.Animation
             Geometry geometry = (Geometry)value;
             if (geometry != null)
             {
-                return AnimatedTypeHelper.IsValidAnimationValueGeometry(geometry);
+                return AnimationHelper.IsValidAnimationValueGeometry(geometry);
             }
             return true;
         }
@@ -156,6 +156,107 @@ namespace Cure.WPF.Media.Animation
             }
             _isAnimationFunctionValid = true;
         }
+
+        protected override Geometry GetCurrentValueCore(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
+        {
+            Debug.Assert(animationClock.CurrentState != ClockState.Stopped);
+            if (!_isAnimationFunctionValid)
+            {
+                ValidateAnimationFunction();
+            }
+            var progress = animationClock.CurrentProgress.Value;
+            if (EasingFunction != null)
+            {
+                progress = EasingFunction.Ease(progress);
+            }
+            Geometry from;
+            Geometry to;
+            Geometry accumulated;
+            Geometry foundation;
+            var validateOrigin = false;
+            var validateDestination = false;
+            switch (_animationType)
+            {
+                case AnimationType.Automatic:
+                    from = defaultOriginValue;
+                    to = defaultDestinationValue;
+                    foundation = accumulated = AnimationHelper.CreateEmptyGeometry(from);
+                    validateOrigin = true;
+                    validateDestination = true;
+                    break;
+                case AnimationType.From:
+                    from = _keyValues[0];
+                    to = defaultDestinationValue;
+                    foundation = accumulated = AnimationHelper.CreateEmptyGeometry(from);
+                    validateDestination = true;
+                    break;
+                case AnimationType.To:
+                    from = defaultOriginValue;
+                    to = _keyValues[0];
+                    foundation = accumulated = AnimationHelper.CreateEmptyGeometry(from);
+                    validateOrigin = true;
+                    break;
+                case AnimationType.By:
+                    foundation = defaultOriginValue;
+                    to = _keyValues[0];
+                    from = accumulated = AnimationHelper.CreateEmptyGeometry(foundation);
+                    validateOrigin = true;
+                    break;
+                case AnimationType.FromTo:
+                    from = _keyValues[0];
+                    to = _keyValues[1];
+                    if (Additive)
+                    {
+                        foundation = defaultOriginValue;
+                        accumulated = AnimationHelper.CreateEmptyGeometry(foundation);
+                        validateOrigin = true;
+                    }
+                    else
+                    {
+                        foundation = accumulated = AnimationHelper.CreateEmptyGeometry(from);
+                    }
+                    break;
+                case AnimationType.FromBy:
+                    from = _keyValues[0];
+                    to = AnimationHelper.AddGeometry(_keyValues[0], _keyValues[1]);
+                    if (Additive)
+                    {
+                        foundation = defaultOriginValue;
+                        accumulated = AnimationHelper.CreateEmptyGeometry(foundation);
+                        validateOrigin = true;
+                    }
+                    else
+                    {
+                        foundation = accumulated = AnimationHelper.CreateEmptyGeometry(from);
+                    }
+                    break;
+                default:
+                    Debug.Fail("Unknown animation type");
+                    foundation = accumulated = from = to = new PathGeometry();
+                    break;
+            }
+            if (validateOrigin && !AnimationHelper.IsValidAnimationValueGeometry(defaultOriginValue))
+            {
+                throw new InvalidOperationException();
+            }
+            if (validateDestination && !AnimationHelper.IsValidAnimationValueGeometry(defaultDestinationValue))
+            {
+                throw new InvalidOperationException();
+            }
+            if (Cumulative)
+            {
+                var currentRepeat = (double)(animationClock.CurrentIteration - 1);
+                if (currentRepeat > 0.0)
+                {
+                    var accumulator = AnimationHelper.SubtractGeometry(to, from);
+                    accumulated = AnimationHelper.ScaleGeometry(accumulator, currentRepeat);
+                }
+            }
+            // return foundation + accumulated + from + ((to - from) * progress)
+            var geometry1 = AnimationHelper.AddGeometry(foundation, accumulated);
+            var geometry2 = AnimationHelper.InterpolateGeometry(from, to, progress);
+            return AnimationHelper.AddGeometry(geometry1, geometry2);
+        }
         #endregion
 
         #region Freezable
@@ -169,140 +270,5 @@ namespace Cure.WPF.Media.Animation
             return new GeometryAnimation();
         }
         #endregion
-
-        protected override Geometry GetCurrentValueCore(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
-        {
-            Debug.Assert(animationClock.CurrentState != ClockState.Stopped);
-            var progress = animationClock.CurrentProgress.Value;
-            if (EasingFunction != null)
-            {
-                progress = EasingFunction.Ease(progress);
-            }
-            // 将 Geometry 转化为 PathGeometry 便于计算动画的当前值
-            // value = from + (to - from) * progress
-            var fromGeometry = PathGeometry.CreateFromGeometry(From);
-            var toGeometry = PathGeometry.CreateFromGeometry(To);
-            var figures = new List<PathFigure>();
-            for (int i = 0; i < fromGeometry.Figures.Count; i++)
-            {
-                var fromFigure = fromGeometry.Figures[i];
-                var toFigure = toGeometry.Figures[i];
-                var fromStart = fromFigure.StartPoint;
-                var toStart = toFigure.StartPoint;
-                var start = fromStart + (toStart - fromStart) * progress;
-                var segments = new List<PathSegment>();
-                for (int j = 0; j < fromFigure.Segments.Count; j++)
-                {
-                    var fromSegment = fromFigure.Segments[j];
-                    var toSegment = toFigure.Segments[j];
-                    PathSegment segment;
-                    if (fromSegment is LineSegment fromLine && toSegment is LineSegment toLine)
-                    {
-                        var fromPoint = fromLine.Point;
-                        var toPoint = toLine.Point;
-                        var point = fromPoint + (toPoint - fromPoint) * progress;
-                        var stroked = fromLine.IsStroked;
-                        segment = new LineSegment(point, stroked);
-                    }
-                    else if (fromSegment is ArcSegment fromArc && toSegment is ArcSegment toArc)
-                    {
-                        var fromPoint = fromArc.Point;
-                        var toPoint = toArc.Point;
-                        var point = fromPoint + (toPoint - fromPoint) * progress;
-                        var fromWidth = fromArc.Size.Width;
-                        var toWidth = toArc.Size.Width;
-                        var width = fromWidth + (toWidth - fromWidth) * progress;
-                        var fromHeigth = fromArc.Size.Height;
-                        var toHeight = toArc.Size.Height;
-                        var height = fromHeigth + (toHeight - fromHeigth) * progress;
-                        var size = new Size(width, height);
-                        var fromAngle = fromArc.RotationAngle;
-                        var toAngle = toArc.RotationAngle;
-                        var angle = fromAngle + (toAngle - fromAngle) * progress;
-                        var largeArc = fromArc.IsLargeArc;
-                        var sweepDirection = fromArc.SweepDirection;
-                        var stroked = fromArc.IsStroked;
-                        segment = new ArcSegment(point, size, angle, largeArc, sweepDirection, stroked);
-                    }
-                    else if (fromSegment is BezierSegment fromBezier && toSegment is BezierSegment toBezier)
-                    {
-                        var fromPoint1 = fromBezier.Point1;
-                        var toPoint1 = toBezier.Point1;
-                        var point1 = fromPoint1 + (toPoint1 - fromPoint1) * progress;
-                        var fromPoint2 = fromBezier.Point2;
-                        var toPoint2 = toBezier.Point2;
-                        var point2 = fromPoint2 + (toPoint2 - fromPoint2) * progress;
-                        var fromPoint3 = fromBezier.Point3;
-                        var toPoint3 = toBezier.Point3;
-                        var point3 = fromPoint3 + (toPoint3 - fromPoint3) * progress;
-                        var stroked = fromBezier.IsStroked;
-                        segment = new BezierSegment(point1, point2, point3, stroked);
-                    }
-                    else if (fromSegment is QuadraticBezierSegment fromQuadraticBezier && toSegment is QuadraticBezierSegment toQuadraticBezier)
-                    {
-                        var fromPoint1 = fromQuadraticBezier.Point1;
-                        var toPoint1 = toQuadraticBezier.Point1;
-                        var point1 = fromPoint1 + (toPoint1 - fromPoint1) * progress;
-                        var fromPoint2 = fromQuadraticBezier.Point2;
-                        var toPoint2 = toQuadraticBezier.Point2;
-                        var point2 = fromPoint2 + (toPoint2 - fromPoint2) * progress;
-                        var stroked = fromQuadraticBezier.IsStroked;
-                        segment = new QuadraticBezierSegment(point1, point2, stroked);
-                    }
-                    else if (fromSegment is PolyLineSegment fromPolyLine && toSegment is PolyLineSegment toPolyLine)
-                    {
-                        var points = new List<Point>();
-                        for (int k = 0; k < fromPolyLine.Points.Count; k++)
-                        {
-                            var fromPoint = fromPolyLine.Points[k];
-                            var toPoint = toPolyLine.Points[k];
-                            var point = fromPoint + (toPoint - fromPoint) * progress;
-                            points.Add(point);
-                        }
-                        var stroked = fromPolyLine.IsStroked;
-                        segment = new PolyLineSegment(points, stroked);
-                    }
-                    else if (fromSegment is PolyBezierSegment fromPolyBezier && toSegment is PolyBezierSegment toPolyBezier)
-                    {
-                        var points = new List<Point>();
-                        for (int k = 0; k < fromPolyBezier.Points.Count; k++)
-                        {
-                            var fromPoint = fromPolyBezier.Points[k];
-                            var toPoint = toPolyBezier.Points[k];
-                            var point = fromPoint + (toPoint - fromPoint) * progress;
-                            points.Add(point);
-                        }
-                        var stroked = fromPolyBezier.IsStroked;
-                        segment = new PolyBezierSegment(points, stroked);
-                    }
-                    else if (fromSegment is PolyQuadraticBezierSegment fromPolyQuadraticBezier && toSegment is PolyQuadraticBezierSegment toPolyQuadraticBezier)
-                    {
-                        var points = new List<Point>();
-                        for (int k = 0; k < fromPolyQuadraticBezier.Points.Count; k++)
-                        {
-                            var fromPoint = fromPolyQuadraticBezier.Points[k];
-                            var toPoint = toPolyQuadraticBezier.Points[k];
-                            var point = fromPoint + (toPoint - fromPoint) * progress;
-                            points.Add(point);
-                        }
-                        var stroked = fromPolyQuadraticBezier.IsStroked;
-                        segment = new PolyQuadraticBezierSegment(points, stroked);
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("暂不支持此转换");
-                    }
-                    segments.Add(segment);
-                }
-                var closed = fromFigure.IsClosed;
-                var figure = new PathFigure(start, segments, closed);
-                figures.Add(figure);
-            }
-            // FillRule 和 Transform 不支持动画, 默认使用 From 的值
-            var fillRule = fromGeometry.FillRule;
-            var transfrom = fromGeometry.Transform;
-            var geometry = new PathGeometry(figures, fillRule, transfrom);
-            return geometry;
-        }
     }
 }
