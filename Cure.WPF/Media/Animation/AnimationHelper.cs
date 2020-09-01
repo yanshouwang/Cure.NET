@@ -11,6 +11,7 @@ namespace Cure.WPF.Media.Animation
     static class AnimationHelper
     {
         #region Interpolation Methods
+
         public static byte InterpolateByte(byte from, byte to, double progress)
         {
             return (byte)(from + (int)((to - from + (double)0.5) * progress));
@@ -232,9 +233,11 @@ namespace Cure.WPF.Media.Animation
             }
             return new PathGeometry(figures, fromGeometry.FillRule, fromGeometry.Transform);
         }
+
         #endregion
 
         #region Add Methods
+
         public static byte AddByte(byte value1, byte value2)
         {
             return (byte)(value1 + value2);
@@ -423,9 +426,11 @@ namespace Cure.WPF.Media.Animation
             }
             return new PathGeometry(figures, geometry1.FillRule, geometry1.Transform);
         }
+
         #endregion
 
         #region Subtract Methods
+
         public static byte SubtractByte(byte value1, byte value2)
         {
             return (byte)(value1 - value2);
@@ -608,9 +613,11 @@ namespace Cure.WPF.Media.Animation
             }
             return new PathGeometry(figures, geometry1.FillRule, geometry1.Transform);
         }
+
         #endregion
 
         #region GetSegmentLength Methods
+
         public static double GetSegmentLengthBoolean(bool from, bool to)
         {
             if (from != to)
@@ -759,9 +766,11 @@ namespace Cure.WPF.Media.Animation
         {
             return Math.Abs((to - from).Length);
         }
+
         #endregion
 
         #region Scale Methods
+
         public static byte ScaleByte(byte value, double factor)
         {
             return (byte)(value * factor);
@@ -857,74 +866,74 @@ namespace Cure.WPF.Media.Animation
 
         public static Geometry ScaleGeometry(Geometry value, double factor)
         {
-            var sourceGeometry = PathGeometry.CreateFromGeometry(value);
+            var baseGeometry = PathGeometry.CreateFromGeometry(value);
             var figures = new List<PathFigure>();
-            for (int i = 0; i < sourceGeometry.Figures.Count; i++)
+            for (int i = 0; i < baseGeometry.Figures.Count; i++)
             {
-                var sourceFigure = sourceGeometry.Figures[i];
-                var start = ScalePoint(sourceFigure.StartPoint, factor);
+                var baseFigure = baseGeometry.Figures[i];
+                var start = ScalePoint(baseFigure.StartPoint, factor);
                 var segments = new List<PathSegment>();
-                for (int j = 0; j < sourceFigure.Segments.Count; j++)
+                for (int j = 0; j < baseFigure.Segments.Count; j++)
                 {
-                    var sourceSegment = sourceFigure.Segments[j];
+                    var baseSegment = baseFigure.Segments[j];
                     PathSegment segment;
-                    if (sourceSegment is LineSegment sourceLine)
+                    if (baseSegment is LineSegment baseLine)
                     {
-                        var point = ScalePoint(sourceLine.Point, factor);
-                        segment = new LineSegment(point, sourceLine.IsStroked);
+                        var point = ScalePoint(baseLine.Point, factor);
+                        segment = new LineSegment(point, baseLine.IsStroked);
                     }
-                    else if (sourceSegment is ArcSegment sourceArc)
+                    else if (baseSegment is ArcSegment baseArc)
                     {
-                        var point = ScalePoint(sourceArc.Point, factor);
-                        var size = ScaleSize(sourceArc.Size, factor);
-                        var rotationAngle = ScaleDouble(sourceArc.RotationAngle, factor);
-                        segment = new ArcSegment(point, size, rotationAngle, sourceArc.IsLargeArc, sourceArc.SweepDirection, sourceArc.IsStroked);
+                        var point = ScalePoint(baseArc.Point, factor);
+                        var size = ScaleSize(baseArc.Size, factor);
+                        var rotationAngle = ScaleDouble(baseArc.RotationAngle, factor);
+                        segment = new ArcSegment(point, size, rotationAngle, baseArc.IsLargeArc, baseArc.SweepDirection, baseArc.IsStroked);
                     }
-                    else if (sourceSegment is BezierSegment sourceBezier)
+                    else if (baseSegment is BezierSegment baseBezier)
                     {
-                        var point1 = ScalePoint(sourceBezier.Point1, factor);
-                        var point2 = ScalePoint(sourceBezier.Point2, factor);
-                        var point3 = ScalePoint(sourceBezier.Point3, factor);
-                        segment = new BezierSegment(point1, point2, point3, sourceBezier.IsStroked);
+                        var point1 = ScalePoint(baseBezier.Point1, factor);
+                        var point2 = ScalePoint(baseBezier.Point2, factor);
+                        var point3 = ScalePoint(baseBezier.Point3, factor);
+                        segment = new BezierSegment(point1, point2, point3, baseBezier.IsStroked);
                     }
-                    else if (sourceSegment is QuadraticBezierSegment sourceQuadraticBezier)
+                    else if (baseSegment is QuadraticBezierSegment baseQuadraticBezier)
                     {
-                        var point1 = ScalePoint(sourceQuadraticBezier.Point1, factor);
-                        var point2 = ScalePoint(sourceQuadraticBezier.Point2, factor);
-                        segment = new QuadraticBezierSegment(point1, point2, sourceQuadraticBezier.IsStroked);
+                        var point1 = ScalePoint(baseQuadraticBezier.Point1, factor);
+                        var point2 = ScalePoint(baseQuadraticBezier.Point2, factor);
+                        segment = new QuadraticBezierSegment(point1, point2, baseQuadraticBezier.IsStroked);
                     }
-                    else if (sourceSegment is PolyLineSegment sourcePolyLine)
+                    else if (baseSegment is PolyLineSegment basePolyLine)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyLine.Points.Count; k++)
+                        for (int k = 0; k < basePolyLine.Points.Count; k++)
                         {
-                            var sourcePoint = sourcePolyLine.Points[k];
-                            var point = ScalePoint(sourcePoint, factor);
+                            var basePoint = basePolyLine.Points[k];
+                            var point = ScalePoint(basePoint, factor);
                             points.Add(point);
                         }
-                        segment = new PolyLineSegment(points, sourcePolyLine.IsStroked);
+                        segment = new PolyLineSegment(points, basePolyLine.IsStroked);
                     }
-                    else if (sourceSegment is PolyBezierSegment sourcePolyBezier)
+                    else if (baseSegment is PolyBezierSegment basePolyBezier)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyBezier.Points.Count; k++)
+                        for (int k = 0; k < basePolyBezier.Points.Count; k++)
                         {
-                            var sourcePoint = sourcePolyBezier.Points[k];
-                            var point = ScalePoint(sourcePoint, factor);
+                            var basePoint = basePolyBezier.Points[k];
+                            var point = ScalePoint(basePoint, factor);
                             points.Add(point);
                         }
-                        segment = new PolyBezierSegment(points, sourcePolyBezier.IsStroked);
+                        segment = new PolyBezierSegment(points, basePolyBezier.IsStroked);
                     }
-                    else if (sourceSegment is PolyQuadraticBezierSegment sourcePolyQuadraticBezier)
+                    else if (baseSegment is PolyQuadraticBezierSegment basePolyQuadraticBezier)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyQuadraticBezier.Points.Count; k++)
+                        for (int k = 0; k < basePolyQuadraticBezier.Points.Count; k++)
                         {
-                            var sourcePoint = sourcePolyQuadraticBezier.Points[k];
-                            var point = ScalePoint(sourcePoint, factor);
+                            var basePoint = basePolyQuadraticBezier.Points[k];
+                            var point = ScalePoint(basePoint, factor);
                             points.Add(point);
                         }
-                        segment = new PolyQuadraticBezierSegment(points, sourcePolyQuadraticBezier.IsStroked);
+                        segment = new PolyQuadraticBezierSegment(points, basePolyQuadraticBezier.IsStroked);
                     }
                     else
                     {
@@ -932,14 +941,16 @@ namespace Cure.WPF.Media.Animation
                     }
                     segments.Add(segment);
                 }
-                var figure = new PathFigure(start, segments, sourceFigure.IsClosed);
+                var figure = new PathFigure(start, segments, baseFigure.IsClosed);
                 figures.Add(figure);
             }
-            return new PathGeometry(figures, sourceGeometry.FillRule, sourceGeometry.Transform);
+            return new PathGeometry(figures, baseGeometry.FillRule, baseGeometry.Transform);
         }
+
         #endregion
 
         #region EnsureValidAnimationValue Methods
+
         public static bool IsValidAnimationValueBoolean(bool value)
         {
             return true;
@@ -1079,12 +1090,14 @@ namespace Cure.WPF.Media.Animation
 
         public static bool IsValidAnimationValueGeometry(Geometry value)
         {
-            // TODO: 对 Geometry 进行校验
+            // TODO: 是否需要对 Geometry 进行校验?
             return true;
         }
+
         #endregion
 
         #region GetZeroValueMethods
+
         public static byte GetZeroValueByte(byte baseValue)
         {
             return 0;
@@ -1164,83 +1177,74 @@ namespace Cure.WPF.Media.Animation
         {
             return Rotation3D.Identity;
         }
-        #endregion
 
-        #region Helpers
-        static bool IsInvalidDouble(double value)
+        public static Geometry GetZeroValueGeometry(Geometry baseValue)
         {
-            return double.IsInfinity(value) || double.IsNaN(value);
-        }
-        #endregion
-
-        #region Geometry
-        public static Geometry CreateEmptyGeometry(Geometry value)
-        {
-            var sourceGeometry = PathGeometry.CreateFromGeometry(value);
+            var baseGeometry = PathGeometry.CreateFromGeometry(baseValue);
             var figures = new List<PathFigure>();
-            for (int i = 0; i < sourceGeometry.Figures.Count; i++)
+            for (int i = 0; i < baseGeometry.Figures.Count; i++)
             {
-                var sourceFigure = sourceGeometry.Figures[i];
+                var baseFigure = baseGeometry.Figures[i];
                 var start = new Point();
                 var segments = new List<PathSegment>();
-                for (int j = 0; j < sourceFigure.Segments.Count; j++)
+                for (int j = 0; j < baseFigure.Segments.Count; j++)
                 {
-                    var sourceSegment = sourceFigure.Segments[j];
+                    var baseSegment = baseFigure.Segments[j];
                     PathSegment segment;
-                    if (sourceSegment is LineSegment sourceLine)
+                    if (baseSegment is LineSegment baseLine)
                     {
                         var point = new Point();
-                        segment = new LineSegment(point, sourceLine.IsStroked);
+                        segment = new LineSegment(point, baseLine.IsStroked);
                     }
-                    else if (sourceSegment is ArcSegment sourceArc)
+                    else if (baseSegment is ArcSegment baseArc)
                     {
                         var point = new Point();
                         var size = new Size();
                         var rotationAngle = 0.0;
-                        segment = new ArcSegment(point, size, rotationAngle, sourceArc.IsLargeArc, sourceArc.SweepDirection, sourceArc.IsStroked);
+                        segment = new ArcSegment(point, size, rotationAngle, baseArc.IsLargeArc, baseArc.SweepDirection, baseArc.IsStroked);
                     }
-                    else if (sourceSegment is BezierSegment sourceBezier)
+                    else if (baseSegment is BezierSegment baseBezier)
                     {
                         var point1 = new Point();
                         var point2 = new Point();
                         var point3 = new Point();
-                        segment = new BezierSegment(point1, point2, point3, sourceBezier.IsStroked);
+                        segment = new BezierSegment(point1, point2, point3, baseBezier.IsStroked);
                     }
-                    else if (sourceSegment is QuadraticBezierSegment sourceQuadraticBezier)
+                    else if (baseSegment is QuadraticBezierSegment baseQuadraticBezier)
                     {
                         var point1 = new Point();
                         var point2 = new Point();
-                        segment = new QuadraticBezierSegment(point1, point2, sourceQuadraticBezier.IsStroked);
+                        segment = new QuadraticBezierSegment(point1, point2, baseQuadraticBezier.IsStroked);
                     }
-                    else if (sourceSegment is PolyLineSegment sourcePolyLine)
+                    else if (baseSegment is PolyLineSegment basePolyLine)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyLine.Points.Count; k++)
+                        for (int k = 0; k < basePolyLine.Points.Count; k++)
                         {
                             var point = new Point();
                             points.Add(point);
                         }
-                        segment = new PolyLineSegment(points, sourcePolyLine.IsStroked);
+                        segment = new PolyLineSegment(points, basePolyLine.IsStroked);
                     }
-                    else if (sourceSegment is PolyBezierSegment sourcePolyBezier)
+                    else if (baseSegment is PolyBezierSegment basePolyBezier)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyBezier.Points.Count; k++)
+                        for (int k = 0; k < basePolyBezier.Points.Count; k++)
                         {
                             var point = new Point();
                             points.Add(point);
                         }
-                        segment = new PolyBezierSegment(points, sourcePolyBezier.IsStroked);
+                        segment = new PolyBezierSegment(points, basePolyBezier.IsStroked);
                     }
-                    else if (sourceSegment is PolyQuadraticBezierSegment sourcePolyQuadraticBezier)
+                    else if (baseSegment is PolyQuadraticBezierSegment basePolyQuadraticBezier)
                     {
                         var points = new List<Point>();
-                        for (int k = 0; k < sourcePolyQuadraticBezier.Points.Count; k++)
+                        for (int k = 0; k < basePolyQuadraticBezier.Points.Count; k++)
                         {
                             var point = new Point();
                             points.Add(point);
                         }
-                        segment = new PolyQuadraticBezierSegment(points, sourcePolyQuadraticBezier.IsStroked);
+                        segment = new PolyQuadraticBezierSegment(points, basePolyQuadraticBezier.IsStroked);
                     }
                     else
                     {
@@ -1248,11 +1252,21 @@ namespace Cure.WPF.Media.Animation
                     }
                     segments.Add(segment);
                 }
-                var figure = new PathFigure(start, segments, sourceFigure.IsClosed);
+                var figure = new PathFigure(start, segments, baseFigure.IsClosed);
                 figures.Add(figure);
             }
-            return new PathGeometry(figures, sourceGeometry.FillRule, sourceGeometry.Transform);
+            return new PathGeometry(figures, baseGeometry.FillRule, baseGeometry.Transform);
         }
+
+        #endregion
+
+        #region Helpers
+
+        static bool IsInvalidDouble(double value)
+        {
+            return double.IsInfinity(value) || double.IsNaN(value);
+        }
+
         #endregion
     }
 }
