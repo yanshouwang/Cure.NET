@@ -413,7 +413,7 @@
                 </Style>
             </ToggleButton.Resources>
             <Path x:Name="PlayPath" Grid.Column="3" Data="{StaticResource Play}"
-                  Fill="Green" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
+                  Fill="Orange" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
                 <Path.RenderTransform>
                     <RotateTransform x:Name="PlayRT"/>
                 </Path.RenderTransform>
@@ -485,14 +485,6 @@
                                     <CubicEase/>
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
-                            <ColorAnimation To="Red"
-                                            Duration="0:0:0.5"
-                                            Storyboard.TargetName="PlayPath"
-                                            Storyboard.TargetProperty="Fill.(SolidColorBrush.Color)">
-                                <ColorAnimation.EasingFunction>
-                                    <CubicEase/>
-                                </ColorAnimation.EasingFunction>
-                            </ColorAnimation>
                         </Storyboard>
                     </BeginStoryboard>
                     <ResumeStoryboard BeginStoryboardName="PlayStoryboard"/>
@@ -516,14 +508,6 @@
                                     <CubicEase/>
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
-                            <ColorAnimation To="Green"
-                                            Duration="0:0:0.5"
-                                            Storyboard.TargetName="PlayPath"
-                                            Storyboard.TargetProperty="Fill.(SolidColorBrush.Color)">
-                                <ColorAnimation.EasingFunction>
-                                    <CubicEase/>
-                                </ColorAnimation.EasingFunction>
-                            </ColorAnimation>
                         </Storyboard>
                     </BeginStoryboard>
                     <PauseStoryboard BeginStoryboardName="PlayStoryboard"/>
