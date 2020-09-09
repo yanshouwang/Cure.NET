@@ -1,4 +1,10 @@
-﻿// https://referencesource.microsoft.com/#PresentationCore/Core/CSharp/MS/public/AnimatedTypeHelpers.cs
+﻿// ---------------------------------------------------------------------------
+//
+// Copyright (c) 2020 yanshouwang.
+//
+// History:
+//
+// ---------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;

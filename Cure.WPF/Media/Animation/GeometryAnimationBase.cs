@@ -1,4 +1,12 @@
-﻿using System;
+﻿// ---------------------------------------------------------------------------
+//
+// Copyright (c) 2020 yanshouwang.
+//
+// History:
+//
+// ---------------------------------------------------------------------------
+
+using System;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 

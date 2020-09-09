@@ -1,4 +1,10 @@
-﻿// https://referencesource.microsoft.com/#PresentationCore/Core/CSharp/System/Windows/Media/Animation/AnimationType.cs
+﻿// ---------------------------------------------------------------------------
+//
+// Copyright (c) 2020 yanshouwang.
+//
+// History:
+//
+// ---------------------------------------------------------------------------
 
 namespace Cure.WPF.Media.Animation
 {

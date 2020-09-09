@@ -1,4 +1,14 @@
-﻿using System.Reflection;
+﻿// ---------------------------------------------------------------------------
+//
+// Copyright (c) 2020 yanshouwang.
+//
+// History:
+//
+// 2020/09/09: yanshouwang - Created.
+//
+// ---------------------------------------------------------------------------
+
+using System.Reflection;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
