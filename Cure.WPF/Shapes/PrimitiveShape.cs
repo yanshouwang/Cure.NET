@@ -27,14 +27,21 @@ namespace Cure.WPF.Shapes
 
         static PrimitiveShape()
         {
-            StretchProperty.OverrideMetadata(typeof(PrimitiveShape), new DrawingPropertyMetadata(Stretch.Fill, DrawingPropertyMetadataOptions.AffectsRender));
-            StrokeThicknessProperty.OverrideMetadata(typeof(PrimitiveShape), new DrawingPropertyMetadata(1.0, DrawingPropertyMetadataOptions.AffectsRender));
+            StretchProperty.OverrideMetadata(typeof(PrimitiveShape), new DrawingPropertyMetadata(
+                Stretch.Fill, DrawingPropertyMetadataOptions.AffectsRender));
+            StrokeThicknessProperty.OverrideMetadata(typeof(PrimitiveShape), new DrawingPropertyMetadata(
+                1.0, DrawingPropertyMetadataOptions.AffectsRender));
         }
 
         void RealizeGeometry()
         {
-            this.RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
+            RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        /// <summary>
+        /// 通过创建几何图形源来扩展形状的绘制方式。
+        /// </summary>
+        protected abstract IGeometrySource CreateGeometrySource();
 
         #region 重写
 
@@ -71,11 +78,6 @@ namespace Cure.WPF.Shapes
         }
 
         #endregion
-
-        /// <summary>
-        /// 通过创建几何图形源来扩展形状的绘制方式。
-        /// </summary>
-        protected abstract IGeometrySource CreateGeometrySource();
 
         #region IShape
 

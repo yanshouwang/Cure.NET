@@ -20,7 +20,7 @@ csharp_indent_switch_labels = true
 #place else statements on a new line
 csharp_new_line_before_else = true
 #require braces to be on a new line for accessors, methods, control_blocks, types, and properties (also known as "Allman" style)
-csharp_new_line_before_open_brace = accessors, methods, control_blocks, types, properties
+csharp_new_line_before_open_brace = all
 
 #Formatting - organize using options
 file_header_template = ---------------------------------------------------------------------------\n\nCopyright (c) 2020 yanshouwang.\n\nHistory:\n\n---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ csharp_style_expression_bodied_accessors = true:suggestion
 #prefer block bodies for constructors
 csharp_style_expression_bodied_constructors = false:suggestion
 #prefer block bodies for methods
-csharp_style_expression_bodied_methods = false:suggestion
+csharp_style_expression_bodied_methods = true:suggestion
 #prefer expression-bodied members for properties
 csharp_style_expression_bodied_properties = true:suggestion
 
@@ -90,12 +90,12 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 #Style - modifier options
 
 #prefer accessibility modifiers to be declared except for public interface members. This will currently not differ from always and will act as future proofing for if C# adds default interface methods.
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+dotnet_style_require_accessibility_modifiers = omit_if_default:suggestion
 
 #Style - Modifier preferences
 
 #when this rule is set to a list of modifiers, prefer the specified ordering.
-csharp_preferred_modifier_order = public,protected,static,override,readonly,abstract,new,sealed:suggestion
+csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
 
 #Style - qualification options
 
