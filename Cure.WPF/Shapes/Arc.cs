@@ -37,8 +37,8 @@ namespace Cure.WPF.Shapes
         /// </value>
         public double StartAngle
         {
-            get => (double)GetValue(StartAngleProperty);
-            set => SetValue(StartAngleProperty, value);
+            get => (double)this.GetValue(StartAngleProperty);
+            set => this.SetValue(StartAngleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for StartAngle.  This enables animation, styling, binding, etc...
@@ -57,8 +57,8 @@ namespace Cure.WPF.Shapes
         /// </value>
         public double EndAngle
         {
-            get => (double)GetValue(EndAngleProperty);
-            set => SetValue(EndAngleProperty, value);
+            get => (double)this.GetValue(EndAngleProperty);
+            set => this.SetValue(EndAngleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for EndAngle.  This enables animation, styling, binding, etc...
@@ -77,8 +77,8 @@ namespace Cure.WPF.Shapes
         /// </value>
         public double ArcThickness
         {
-            get => (double)GetValue(ArcThicknessProperty);
-            set => SetValue(ArcThicknessProperty, value);
+            get => (double)this.GetValue(ArcThicknessProperty);
+            set => this.SetValue(ArcThicknessProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ArcThickness.  This enables animation, styling, binding, etc...
@@ -97,8 +97,8 @@ namespace Cure.WPF.Shapes
         /// </value>
         public UnitType ArcThicknessUnit
         {
-            get => (UnitType)GetValue(ArcThicknessUnitProperty);
-            set => SetValue(ArcThicknessUnitProperty, value);
+            get => (UnitType)this.GetValue(ArcThicknessUnitProperty);
+            set => this.SetValue(ArcThicknessUnitProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ArcThicknessUnit.  This enables animation, styling, binding, etc...
@@ -114,11 +114,11 @@ namespace Cure.WPF.Shapes
         #region IGeometrySourceParameters
 
         [SpecialName]
-        Stretch IGeometrySourceParameters.Stretch => Stretch;
+        Stretch IGeometrySourceParameters.Stretch => this.Stretch;
         [SpecialName]
-        Brush IGeometrySourceParameters.Stroke => Stroke;
+        Brush IGeometrySourceParameters.Stroke => this.Stroke;
         [SpecialName]
-        double IGeometrySourceParameters.StrokeThickness => StrokeThickness;
+        double IGeometrySourceParameters.StrokeThickness => this.StrokeThickness;
 
         #endregion
     }

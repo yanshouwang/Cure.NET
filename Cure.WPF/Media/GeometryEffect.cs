@@ -25,8 +25,9 @@ namespace Cure.WPF.Media
     [TypeConverter(typeof(GeometryEffectConverter))]
     public abstract class GeometryEffect : Freezable
     {
-        static GeometryEffect _defaultGeometryEffect;
-        bool _effectInvalidated;
+        private static GeometryEffect _defaultGeometryEffect;
+        private bool _effectInvalidated;
+
         /// <summary>
         /// 指定上次处理几何图形效果后产生的几何图形。
         /// </summary>
@@ -42,7 +43,7 @@ namespace Cure.WPF.Media
         /// 设置作为给定依赖对象附加属性的几何图形效果。
         /// </summary>
         public static void SetGeometryEffect(DependencyObject obj, GeometryEffect value)
-            => obj.SetValue(GeometryEffectProperty, (object)value);
+            => obj.SetValue(GeometryEffectProperty, value);
 
         public static readonly DependencyProperty GeometryEffectProperty =
             DependencyProperty.RegisterAttached(
@@ -51,10 +52,10 @@ namespace Cure.WPF.Media
                 typeof(GeometryEffect),
                 new DrawingPropertyMetadata(DefaultGeometryEffect, DrawingPropertyMetadataOptions.AffectsRender, new PropertyChangedCallback(OnGeometryEffectChanged)));
 
-        static void OnGeometryEffectChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        private static void OnGeometryEffectChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
         {
-            var oldValue = e.OldValue as GeometryEffect;
-            var newValue = e.NewValue as GeometryEffect;
+            GeometryEffect oldValue = e.OldValue as GeometryEffect;
+            GeometryEffect newValue = e.NewValue as GeometryEffect;
             if (oldValue == newValue)
                 return;
             if (oldValue != null && obj.Equals(oldValue.Parent))
@@ -63,9 +64,9 @@ namespace Cure.WPF.Media
                 return;
             if (newValue.Parent != null)
             {
-                var method = new Action(() =>
+                Action method = new Action(() =>
                 {
-                    var geometryEffect = newValue.CloneCurrentValue();
+                    GeometryEffect geometryEffect = newValue.CloneCurrentValue();
                     obj.SetValue(GeometryEffectProperty, geometryEffect);
                 });
                 obj.Dispatcher.BeginInvoke(method, DispatcherPriority.Send, null);
@@ -105,7 +106,7 @@ namespace Cure.WPF.Media
         /// 获取此几何图形效果的输出几何图形。
         /// </summary>
         public Geometry OutputGeometry
-            => CachedGeometry;
+            => this.CachedGeometry;
 
         static GeometryEffect()
         {
@@ -122,11 +123,11 @@ namespace Cure.WPF.Media
         /// </summary>
         public bool InvalidateGeometry(InvalidateGeometryReasons reasons)
         {
-            if (_effectInvalidated)
+            if (this._effectInvalidated)
                 return false;
-            _effectInvalidated = true;
+            this._effectInvalidated = true;
             if (reasons != InvalidateGeometryReasons.ParentInvalidated)
-                InvalidateParent(Parent);
+                InvalidateParent(this.Parent);
             return true;
         }
 
@@ -136,11 +137,11 @@ namespace Cure.WPF.Media
         /// <returns>如果未更改任何内容，则返回 false。</returns>
         public bool ProcessGeometry(Geometry input)
         {
-            var flag = false;
-            if (_effectInvalidated)
+            bool flag = false;
+            if (this._effectInvalidated)
             {
-                flag |= UpdateCachedGeometry(input);
-                _effectInvalidated = false;
+                flag |= this.UpdateCachedGeometry(input);
+                this._effectInvalidated = false;
             }
             return flag;
         }
@@ -160,12 +161,12 @@ namespace Cure.WPF.Media
         /// </summary>
         protected internal virtual void Detach()
         {
-            _effectInvalidated = true;
-            CachedGeometry = null;
-            if (Parent == null)
+            this._effectInvalidated = true;
+            this.CachedGeometry = null;
+            if (this.Parent == null)
                 return;
-            InvalidateParent(Parent);
-            Parent = null;
+            InvalidateParent(this.Parent);
+            this.Parent = null;
         }
 
         /// <summary>
@@ -173,19 +174,19 @@ namespace Cure.WPF.Media
         /// </summary>
         protected internal virtual void Attach(DependencyObject obj)
         {
-            if (Parent != null)
-                Detach();
-            _effectInvalidated = true;
-            CachedGeometry = null;
+            if (this.Parent != null)
+                this.Detach();
+            this._effectInvalidated = true;
+            this.CachedGeometry = null;
             if (!InvalidateParent(obj))
                 return;
-            Parent = obj;
+            this.Parent = obj;
         }
 
         /// <summary>
         /// 在对象为有效的父类型（IShape 或 GeometryEffect）时使给定依赖对象上的几何图形无效。
         /// </summary>
-        static bool InvalidateParent(DependencyObject parent)
+        private static bool InvalidateParent(DependencyObject parent)
         {
             switch (parent)
             {
@@ -204,13 +205,13 @@ namespace Cure.WPF.Media
         /// 在 WPF 中实现该 Freezable。
         /// </summary>
         protected override Freezable CreateInstanceCore()
-            => (Freezable)Activator.CreateInstance(GetType());
+            => (Freezable)Activator.CreateInstance(this.GetType());
 
-        class NoGeometryEffect : GeometryEffect
+        private class NoGeometryEffect : GeometryEffect
         {
             protected override bool UpdateCachedGeometry(Geometry input)
             {
-                CachedGeometry = input;
+                this.CachedGeometry = input;
                 return false;
             }
 

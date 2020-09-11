@@ -13,7 +13,7 @@ using System;
 namespace Cure.WPF.Media
 {
     [Flags]
-    enum DrawingPropertyMetadataOptions
+    internal enum DrawingPropertyMetadataOptions
     {
         None = 0,
         AffectsMeasure = 1,

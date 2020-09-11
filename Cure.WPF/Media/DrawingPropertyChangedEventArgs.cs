@@ -12,7 +12,7 @@ using System;
 
 namespace Cure.WPF.Media
 {
-    class DrawingPropertyChangedEventArgs : EventArgs
+    internal class DrawingPropertyChangedEventArgs : EventArgs
     {
         public DrawingPropertyMetadata Metadata { get; set; }
         public bool Animated { get; set; }

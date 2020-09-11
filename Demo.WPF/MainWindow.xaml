@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cure="https://www.yanshouwang.dev/cure"
         xmlns:local="clr-namespace:Demo.WPF"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        mc:Ignorable="d" x:Name="Window"
+        Title="Demo" Height="450" Width="800">
     <Window.Resources>
         <Geometry x:Key="Hippo">
             M 217.765 29.683
@@ -343,6 +343,7 @@
             M5,6 L5,10 L19,10 L19,6 L5,6 Z
             M5,14 L5,18 L19,18 L19,14 L5,14 Z
         </Geometry>
+        <cure:SketchGeometryEffect x:Key="SketchGeometryEffect"/>
     </Window.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -530,5 +531,9 @@
                 </EventTrigger>
             </ToggleButton.Triggers>
         </ToggleButton>
+        <cure:Arc Fill="Orange" Stretch="None" StartAngle="90" EndAngle="120" ArcThicknessUnit="Percent" ArcThickness="0.9"
+                  Width="200" Height="200"/>
+        <cure:Arc Fill="HotPink" Stretch="None" StartAngle="120" EndAngle="360" ArcThicknessUnit="Percent" ArcThickness="0.9"
+                  Width="200" Height="200"/>
     </Grid>
 </Window>

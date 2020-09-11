@@ -10,7 +10,7 @@
 
 namespace Cure.WPF.Media
 {
-    interface IArcGeometrySourceParameters : IGeometrySourceParameters
+    internal interface IArcGeometrySourceParameters : IGeometrySourceParameters
     {
         double StartAngle { get; }
         double EndAngle { get; }

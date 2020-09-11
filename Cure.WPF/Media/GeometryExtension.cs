@@ -12,7 +12,7 @@ using System.Windows.Media;
 
 namespace Cure.WPF.Media
 {
-    static class GeometryExtension
+    internal static class GeometryExtension
     {
         /// <summary>
         /// 将给定的几何图形转换成单个 PathGeometry。

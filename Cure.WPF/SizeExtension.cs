@@ -12,7 +12,7 @@ using System.Windows;
 
 namespace Cure.WPF
 {
-    static class SizeExtension
+    internal static class SizeExtension
     {
         public static Rect ToBounds(this Size size)
             => new Rect(0.0, 0.0, size.Width, size.Height);

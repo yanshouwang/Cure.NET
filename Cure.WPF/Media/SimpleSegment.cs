@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace Cure.WPF.Media
 {
-    class SimpleSegment
+    internal class SimpleSegment
     {
         public SegmentType Type { get; private set; }
 
@@ -24,14 +24,14 @@ namespace Cure.WPF.Media
 
         public void Flatten(IList<Point> resultPolyline, double tolerance, IList<double> resultParameters)
         {
-            switch (Type)
+            switch (this.Type)
             {
                 case SegmentType.Line:
-                    resultPolyline.Add(Points[1]);
+                    resultPolyline.Add(this.Points[1]);
                     resultParameters?.Add(1.0);
                     break;
                 case SegmentType.CubicBeizer:
-                    BezierCurveFlattener.FlattenCubic(Points, tolerance, resultPolyline, true, resultParameters);
+                    BezierCurveFlattener.FlattenCubic(this.Points, tolerance, resultPolyline, true, resultParameters);
                     break;
             }
         }
@@ -39,10 +39,10 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 专用构造函数。强制使用工厂方法。
         /// </summary>
-        SimpleSegment(SegmentType type, Point[] points)
+        private SimpleSegment(SegmentType type, Point[] points)
         {
-            Type = type;
-            Points = points;
+            this.Type = type;
+            this.Points = points;
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Cure.WPF.Media
         /// </summary>
         public static SimpleSegment Create(Point point0, Point point1)
         {
-            var points = new Point[2] { point0, point1 };
+            Point[] points = new Point[2] { point0, point1 };
             return new SimpleSegment(SegmentType.Line, points);
         }
 
@@ -59,9 +59,9 @@ namespace Cure.WPF.Media
         /// </summary>
         public static SimpleSegment Create(Point point0, Point point1, Point point2)
         {
-            var point3 = GeometryUtil.Lerp(point0, point1, 2.0 / 3.0);
-            var point4 = GeometryUtil.Lerp(point1, point2, 1.0 / 3.0);
-            var points = new Point[4] { point0, point3, point4, point2 };
+            Point point3 = GeometryUtil.Lerp(point0, point1, 2.0 / 3.0);
+            Point point4 = GeometryUtil.Lerp(point1, point2, 1.0 / 3.0);
+            Point[] points = new Point[4] { point0, point3, point4, point2 };
             return new SimpleSegment(SegmentType.CubicBeizer, points);
         }
 
@@ -70,7 +70,7 @@ namespace Cure.WPF.Media
         /// </summary>
         public static SimpleSegment Create(Point point0, Point point1, Point point2, Point point3)
         {
-            var points = new Point[4] { point0, point1, point2, point3 };
+            Point[] points = new Point[4] { point0, point1, point2, point3 };
             return new SimpleSegment(SegmentType.CubicBeizer, points);
         }
 

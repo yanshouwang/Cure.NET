@@ -22,7 +22,7 @@ namespace Cure.WPF.Media
     /// <typeparam name="TParameters">基类将要处理的几何图形源参数的类型。</typeparam>
     public abstract class GeometrySource<TParameters> : IGeometrySource where TParameters : IGeometrySourceParameters
     {
-        bool _geometryInvalidated;
+        private bool _geometryInvalidated;
         /// <summary>
         /// 指定上次处理几何图形效果后产生的几何图形。
         /// </summary>
@@ -44,11 +44,11 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 在不清晰或不得已的情况下应用几何图形效果并更新 this.Geometry。否则将 this.Geometry 保留为 this.cachedGeometry。
         /// </summary>
-        bool ApplyGeometryEffect(IGeometrySourceParameters parameters, bool force)
+        private bool ApplyGeometryEffect(IGeometrySourceParameters parameters, bool force)
         {
-            var flag = false;
-            var geometry = CachedGeometry;
-            var geometryEffect = parameters.GetGeometryEffect();
+            bool flag = false;
+            Geometry geometry = this.CachedGeometry;
+            GeometryEffect geometryEffect = parameters.GetGeometryEffect();
             if (geometryEffect != null)
             {
                 if (force)
@@ -56,16 +56,16 @@ namespace Cure.WPF.Media
                     flag = true;
                     geometryEffect.InvalidateGeometry(InvalidateGeometryReasons.ParentInvalidated);
                 }
-                if (geometryEffect.ProcessGeometry(CachedGeometry))
+                if (geometryEffect.ProcessGeometry(this.CachedGeometry))
                 {
                     flag = true;
                     geometry = geometryEffect.OutputGeometry;
                 }
             }
-            if (Geometry != geometry)
+            if (this.Geometry != geometry)
             {
                 flag = true;
-                Geometry = geometry;
+                this.Geometry = geometry;
             }
             return flag;
         }
@@ -94,10 +94,10 @@ namespace Cure.WPF.Media
         public bool InvalidateGeometry(InvalidateGeometryReasons reasons)
         {
             if ((reasons & InvalidateGeometryReasons.TemplateChanged) != 0)
-                CachedGeometry = null;
-            if (_geometryInvalidated)
+                this.CachedGeometry = null;
+            if (this._geometryInvalidated)
                 return false;
-            _geometryInvalidated = true;
+            this._geometryInvalidated = true;
             return true;
         }
 
@@ -106,23 +106,23 @@ namespace Cure.WPF.Media
         /// </summary>
         public bool UpdateGeometry(IGeometrySourceParameters parameters, Rect layoutBounds)
         {
-            var flag1 = false;
+            bool flag1 = false;
             if (parameters is TParameters newParameters)
             {
-                var logicalBounds = ComputeLogicalBounds(layoutBounds, parameters);
-                flag1 = ((flag1 ? 1 : 0) | (LayoutBounds != layoutBounds ? 1 : (LogicalBounds != logicalBounds ? 1 : 0))) != 0;
-                if (_geometryInvalidated || flag1)
+                Rect logicalBounds = this.ComputeLogicalBounds(layoutBounds, parameters);
+                flag1 = ((flag1 ? 1 : 0) | (this.LayoutBounds != layoutBounds ? 1 : (this.LogicalBounds != logicalBounds ? 1 : 0))) != 0;
+                if (this._geometryInvalidated || flag1)
                 {
-                    LayoutBounds = layoutBounds;
-                    LogicalBounds = logicalBounds;
-                    var flag2 = flag1 | UpdateCachedGeometry(newParameters);
-                    var num1 = flag2 ? 1 : 0;
-                    var force = flag2;
-                    var num2 = ApplyGeometryEffect(parameters, force) ? 1 : 0;
+                    this.LayoutBounds = layoutBounds;
+                    this.LogicalBounds = logicalBounds;
+                    bool flag2 = flag1 | this.UpdateCachedGeometry(newParameters);
+                    int num1 = flag2 ? 1 : 0;
+                    bool force = flag2;
+                    int num2 = this.ApplyGeometryEffect(parameters, force) ? 1 : 0;
                     flag1 = (num1 | num2) != 0;
                 }
             }
-            _geometryInvalidated = false;
+            this._geometryInvalidated = false;
             return flag1;
         }
 

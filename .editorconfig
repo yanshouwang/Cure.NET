@@ -78,9 +78,9 @@ csharp_prefer_simple_default_expression = true:suggestion
 #Style - implicit and explicit types
 
 #prefer var over explicit type in all cases, unless overridden by another code style rule
-csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
 #prefer var is used to declare variables with built-in system types such as int
-csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
 
 #Style - language keyword and framework type options
 
@@ -90,7 +90,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 #Style - modifier options
 
 #prefer accessibility modifiers to be declared except for public interface members. This will currently not differ from always and will act as future proofing for if C# adds default interface methods.
-dotnet_style_require_accessibility_modifiers = omit_if_default:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 
 #Style - Modifier preferences
 
@@ -100,8 +100,8 @@ csharp_preferred_modifier_order = public,private,protected,internal,static,exter
 #Style - qualification options
 
 #prefer fields not to be prefaced with this. or Me. in Visual Basic
-dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_field = true:suggestion
 #prefer methods not to be prefaced with this. or Me. in Visual Basic
-dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_method = true:suggestion
 #prefer properties not to be prefaced with this. or Me. in Visual Basic
-dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_property = true:suggestion

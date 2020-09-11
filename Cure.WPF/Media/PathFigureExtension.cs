@@ -13,7 +13,7 @@ using System.Windows.Media;
 
 namespace Cure.WPF.Media
 {
-    static class PathFigureExtension
+    internal static class PathFigureExtension
     {
         /// <summary>
         /// 迭代给定图形内部的所有线段，并返回每个线段的正确起点。
@@ -22,10 +22,10 @@ namespace Cure.WPF.Media
         {
             if (figure != null && figure.Segments.Count > 0)
             {
-                var startPoint = figure.StartPoint;
-                foreach (var segment in figure.Segments)
+                System.Windows.Point startPoint = figure.StartPoint;
+                foreach (PathSegment segment in figure.Segments)
                 {
-                    var lastPoint = segment.GetLastPoint();
+                    System.Windows.Point lastPoint = segment.GetLastPoint();
                     yield return new PathSegmentData(startPoint, segment);
                     startPoint = lastPoint;
                 }

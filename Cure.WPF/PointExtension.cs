@@ -12,7 +12,7 @@ using System.Windows;
 
 namespace Cure.WPF
 {
-    static class PointExtension
+    internal static class PointExtension
     {
         /// <summary>
         /// 获取两个点之间的差异矢量。

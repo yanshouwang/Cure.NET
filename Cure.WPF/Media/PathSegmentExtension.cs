@@ -14,7 +14,7 @@ using System.Windows.Media;
 
 namespace Cure.WPF.Media
 {
-    static class PathSegmentExtension
+    internal static class PathSegmentExtension
     {
         /// <summary>
         /// 避免调用包含三个参数的构造函数，因为它始终会为 IsStroked 设置本地值。
@@ -74,8 +74,8 @@ namespace Cure.WPF.Media
 
         public static IEnumerable<SimpleSegment> GetSimpleSegments(this PathSegment segment, Point start)
         {
-            var implementation = PathSegmentUtil.PathSegmentImplementation.Create(segment, start);
-            foreach (var simpleSegment in implementation.GetSimpleSegments())
+            PathSegmentUtil.PathSegmentImplementation implementation = PathSegmentUtil.PathSegmentImplementation.Create(segment, start);
+            foreach (SimpleSegment simpleSegment in implementation.GetSimpleSegments())
                 yield return simpleSegment;
         }
     }

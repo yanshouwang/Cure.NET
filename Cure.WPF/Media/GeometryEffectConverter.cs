@@ -24,10 +24,10 @@ namespace Cure.WPF.Media
     public sealed class GeometryEffectConverter : TypeConverter
     {
         /// <summary>生成受支持几何图形效果的预设列表。</summary>
-        static readonly Dictionary<string, GeometryEffect> _registeredEffects = new Dictionary<string, GeometryEffect>()
+        private static readonly Dictionary<string, GeometryEffect> _registeredEffects = new Dictionary<string, GeometryEffect>()
         {
             ["None"] = GeometryEffect.DefaultGeometryEffect,
-            ["Sketch"] = (GeometryEffect)new SketchGeometryEffect()
+            ["Sketch"] = new SketchGeometryEffect()
         };
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Cure.WPF.Media
         /// 将字符串转换为几何图形效果。回退值是 null。
         /// </summary>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-            => value is string key && _registeredEffects.TryGetValue(key, out var geometryEffect)
+            => value is string key && _registeredEffects.TryGetValue(key, out GeometryEffect geometryEffect)
             ? geometryEffect.CloneCurrentValue()
             : null;
 
@@ -57,7 +57,7 @@ namespace Cure.WPF.Media
         {
             if (typeof(string).IsAssignableFrom(destinationType))
             {
-                foreach (var registeredEffect in _registeredEffects)
+                foreach (KeyValuePair<string, GeometryEffect> registeredEffect in _registeredEffects)
                 {
                     if ((registeredEffect.Value == null ? (value == null ? 1 : 0) : (registeredEffect.Value.Equals(value as GeometryEffect) ? 1 : 0)) != 0)
                         return registeredEffect.Key;

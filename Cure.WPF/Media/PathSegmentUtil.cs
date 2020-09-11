@@ -10,9 +10,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using System.Linq;
 
 namespace Cure.WPF.Media
 {
@@ -21,15 +21,15 @@ namespace Cure.WPF.Media
     /// 要使用 PathSegment 和所有变体的帮助程序类。
     /// 用于处理不同类型的 PathSegment 的策略类。
     /// </summary>
-    static class PathSegmentUtil
+    internal static class PathSegmentUtil
     {
         /// <summary>
         /// 将弧段转换成贝塞尔格式。返回 BezierSegment、PolyBezierSegment、LineSegment 或 null。返回 null 时，弧将退化为起点。
         /// </summary>
         public static PathSegment ArcToBezierSegments(ArcSegment arcSegment, Point startPoint)
         {
-            var stroked = arcSegment.IsStroked;
-            ArcToBezierUtil.ArcToBezier(startPoint.X, startPoint.Y, arcSegment.Size.Width, arcSegment.Size.Height, arcSegment.RotationAngle, arcSegment.IsLargeArc, arcSegment.SweepDirection == SweepDirection.Clockwise, arcSegment.Point.X, arcSegment.Point.Y, out var pPt, out var cPieces);
+            bool stroked = arcSegment.IsStroked;
+            ArcToBezierUtil.ArcToBezier(startPoint.X, startPoint.Y, arcSegment.Size.Width, arcSegment.Size.Height, arcSegment.RotationAngle, arcSegment.IsLargeArc, arcSegment.SweepDirection == SweepDirection.Clockwise, arcSegment.Point.X, arcSegment.Point.Y, out Point[] pPt, out int cPieces);
             return cPieces switch
             {
                 -1 => null,
@@ -41,14 +41,14 @@ namespace Cure.WPF.Media
 
         public static LineSegment CreateLineSegment(Point point, bool stroked = true)
         {
-            var segment = new LineSegment { Point = point };
+            LineSegment segment = new LineSegment { Point = point };
             segment.SetIsStroked(stroked);
             return segment;
         }
 
         public static QuadraticBezierSegment CreateQuadraticBezierSegment(Point point1, Point point2, bool stroked = true)
         {
-            var segment = new QuadraticBezierSegment
+            QuadraticBezierSegment segment = new QuadraticBezierSegment
             {
                 Point1 = point1,
                 Point2 = point2
@@ -76,8 +76,8 @@ namespace Cure.WPF.Media
             count = count / 3 * 3;
             if (count < 0 || points.Count < start + count)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            var segment = new PolyBezierSegment { Points = new PointCollection() };
-            for (var index = 0; index < count; ++index)
+            PolyBezierSegment segment = new PolyBezierSegment { Points = new PointCollection() };
+            for (int index = 0; index < count; ++index)
                 segment.Points.Add(points[start + index]);
             segment.SetIsStroked(stroked);
             return segment;
@@ -90,8 +90,8 @@ namespace Cure.WPF.Media
             count = count / 2 * 2;
             if (count < 0 || points.Count < start + count)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            var segment = new PolyQuadraticBezierSegment { Points = new PointCollection() };
-            for (var index = 0; index < count; ++index)
+            PolyQuadraticBezierSegment segment = new PolyQuadraticBezierSegment { Points = new PointCollection() };
+            for (int index = 0; index < count; ++index)
                 segment.Points.Add(points[start + index]);
             segment.SetIsStroked(stroked);
             return segment;
@@ -101,8 +101,8 @@ namespace Cure.WPF.Media
         {
             if (count < 0 || points.Count < start + count)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            var segment = new PolyLineSegment { Points = new PointCollection() };
-            for (var index = 0; index < count; ++index)
+            PolyLineSegment segment = new PolyLineSegment { Points = new PointCollection() };
+            for (int index = 0; index < count; ++index)
                 segment.Points.Add(points[start + index]);
             segment.SetIsStroked(stroked);
             return segment;
@@ -137,14 +137,14 @@ namespace Cure.WPF.Media
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (points.Count < start + count)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            var flag1 = false;
+            bool flag1 = false;
             if (!(collection[index] is PolyLineSegment polyLineSegment))
             {
                 collection[index] = polyLineSegment = new PolyLineSegment();
                 flag1 = true;
             }
-            var flag2 = flag1 | polyLineSegment.Points.EnsureListCount(count);
-            for (var index1 = 0; index1 < count; ++index1)
+            bool flag2 = flag1 | polyLineSegment.Points.EnsureListCount(count);
+            for (int index1 = 0; index1 < count; ++index1)
             {
                 if (polyLineSegment.Points[index1] != points[index1 + start])
                 {
@@ -172,7 +172,7 @@ namespace Cure.WPF.Media
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (points.Count < start + count)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            var flag = false;
+            bool flag = false;
             count = count / 3 * 3;
             if (!(collection[index] is PolyBezierSegment polyBezierSegment))
             {
@@ -191,7 +191,7 @@ namespace Cure.WPF.Media
             return flag;
         }
 
-        static class ArcToBezierUtil
+        private static class ArcToBezierUtil
         {
             /// <summary>
             /// ArcToBezier，计算弧的贝塞尔近似值。
@@ -213,14 +213,14 @@ namespace Cure.WPF.Media
                 out Point[] pPt,
                 out int cPieces)
             {
-                var num1 = 1E-06;
+                double num1 = 1E-06;
                 pPt = new Point[12];
-                var rFuzz2 = num1 * num1;
-                var flag = false;
+                double rFuzz2 = num1 * num1;
+                bool flag = false;
                 cPieces = -1;
-                var num2 = 0.5 * (xEnd - xStart);
-                var num3 = 0.5 * (yEnd - yStart);
-                var rHalfChord2 = num2 * num2 + num3 * num3;
+                double num2 = 0.5 * (xEnd - xStart);
+                double num3 = 0.5 * (yEnd - yStart);
+                double rHalfChord2 = num2 * num2 + num3 * num3;
                 if (rHalfChord2 < rFuzz2)
                     return;
                 if (!AcceptRadius(rHalfChord2, rFuzz2, ref xRadius) || !AcceptRadius(rHalfChord2, rFuzz2, ref yRadius))
@@ -241,18 +241,18 @@ namespace Cure.WPF.Media
                         rRotation = -rRotation * Math.PI / 180.0;
                         num4 = Math.Cos(rRotation);
                         num5 = Math.Sin(rRotation);
-                        var num6 = num2 * num4 - num3 * num5;
+                        double num6 = num2 * num4 - num3 * num5;
                         num3 = num2 * num5 + num3 * num4;
                         num2 = num6;
                     }
-                    var num7 = num2 / xRadius;
-                    var num8 = num3 / yRadius;
-                    var d = num7 * num7 + num8 * num8;
+                    double num7 = num2 / xRadius;
+                    double num8 = num3 / yRadius;
+                    double d = num7 * num7 + num8 * num8;
                     double num9;
                     double num10;
                     if (d > 1.0)
                     {
-                        var num6 = Math.Sqrt(d);
+                        double num6 = Math.Sqrt(d);
                         xRadius *= num6;
                         yRadius *= num6;
                         num10 = num9 = 0.0;
@@ -262,7 +262,7 @@ namespace Cure.WPF.Media
                     }
                     else
                     {
-                        var num6 = Math.Sqrt((1.0 - d) / d);
+                        double num6 = Math.Sqrt((1.0 - d) / d);
                         if (fLargeArc != fSweepUp)
                         {
                             num10 = -num6 * num8;
@@ -274,49 +274,49 @@ namespace Cure.WPF.Media
                             num9 = -num6 * num7;
                         }
                     }
-                    var point1 = new Point(-num7 - num10, -num8 - num9);
-                    var point2 = new Point(num7 - num10, num8 - num9);
-                    var matrix = new Matrix(num4 * xRadius, -num5 * xRadius, num5 * yRadius, num4 * yRadius, 0.5 * (xEnd + xStart), 0.5 * (yEnd + yStart));
+                    Point point1 = new Point(-num7 - num10, -num8 - num9);
+                    Point point2 = new Point(num7 - num10, num8 - num9);
+                    Matrix matrix = new Matrix(num4 * xRadius, -num5 * xRadius, num5 * yRadius, num4 * yRadius, 0.5 * (xEnd + xStart), 0.5 * (yEnd + yStart));
                     if (!flag)
                     {
                         matrix.OffsetX += matrix.M11 * num10 + matrix.M21 * num9;
                         matrix.OffsetY += matrix.M12 * num10 + matrix.M22 * num9;
                     }
-                    GetArcAngle(point1, point2, fLargeArc, fSweepUp, out var rCosArcAngle, out var rSinArcAngle, out cPieces);
-                    var num11 = GetBezierDistance(rCosArcAngle);
+                    GetArcAngle(point1, point2, fLargeArc, fSweepUp, out double rCosArcAngle, out double rSinArcAngle, out cPieces);
+                    double num11 = GetBezierDistance(rCosArcAngle);
                     if (!fSweepUp)
                         num11 = -num11;
-                    var rhs1 = new Point(-num11 * point1.Y, num11 * point1.X);
-                    var num12 = 0;
+                    Point rhs1 = new Point(-num11 * point1.Y, num11 * point1.X);
+                    int num12 = 0;
                     pPt = new Point[cPieces * 3];
                     Point rhs2;
-                    for (var index1 = 1; index1 < cPieces; ++index1)
+                    for (int index1 = 1; index1 < cPieces; ++index1)
                     {
-                        var point3 = new Point(point1.X * rCosArcAngle - point1.Y * rSinArcAngle, point1.X * rSinArcAngle + point1.Y * rCosArcAngle);
+                        Point point3 = new Point(point1.X * rCosArcAngle - point1.Y * rSinArcAngle, point1.X * rSinArcAngle + point1.Y * rCosArcAngle);
                         rhs2 = new Point(-num11 * point3.Y, num11 * point3.X);
-                        var pointArray1 = pPt;
-                        var index2 = num12;
-                        var num6 = index2 + 1;
+                        Point[] pointArray1 = pPt;
+                        int index2 = num12;
+                        int num6 = index2 + 1;
                         pointArray1[index2] = matrix.Transform(point1.Plus(rhs1));
-                        var pointArray2 = pPt;
-                        var index3 = num6;
-                        var num13 = index3 + 1;
+                        Point[] pointArray2 = pPt;
+                        int index3 = num6;
+                        int num13 = index3 + 1;
                         pointArray2[index3] = matrix.Transform(point3.Minus(rhs2));
-                        var pointArray3 = pPt;
-                        var index4 = num13;
+                        Point[] pointArray3 = pPt;
+                        int index4 = num13;
                         num12 = index4 + 1;
                         pointArray3[index4] = matrix.Transform(point3);
                         point1 = point3;
                         rhs1 = rhs2;
                     }
                     rhs2 = new Point(-num11 * point2.Y, num11 * point2.X);
-                    var pointArray4 = pPt;
-                    var index5 = num12;
-                    var num14 = index5 + 1;
+                    Point[] pointArray4 = pPt;
+                    int index5 = num12;
+                    int num14 = index5 + 1;
                     pointArray4[index5] = matrix.Transform(point1.Plus(rhs1));
-                    var pointArray5 = pPt;
-                    var index6 = num14;
-                    var index7 = index6 + 1;
+                    Point[] pointArray5 = pPt;
+                    int index6 = num14;
+                    int index7 = index6 + 1;
                     pointArray5[index6] = matrix.Transform(point2.Minus(rhs2));
                     pPt[index7] = new Point(xEnd, yEnd);
                 }
@@ -328,7 +328,7 @@ namespace Cure.WPF.Media
             /// <remarks>
             /// 这是 ArcToBezier 使用的专用实用工具。将弧分为若干段，使任何一段弧扫过的角度都不超过 90 度。输入点在单位圆上。
             /// </remarks>
-            static void GetArcAngle(
+            private static void GetArcAngle(
                 Point ptStart,
                 Point ptEnd,
                 bool fLargeArc,
@@ -353,7 +353,7 @@ namespace Cure.WPF.Media
                 }
                 else
                     cPieces = !fLargeArc ? 2 : 3;
-                var num1 = Math.Atan2(rSinArcAngle, rCosArcAngle);
+                double num1 = Math.Atan2(rSinArcAngle, rCosArcAngle);
                 if (fSweepUp)
                 {
                     if (num1 < 0.0)
@@ -361,7 +361,7 @@ namespace Cure.WPF.Media
                 }
                 else if (num1 > 0.0)
                     num1 -= 2.0 * Math.PI;
-                var num2 = num1 / (double)cPieces;
+                double num2 = num1 / cPieces;
                 rCosArcAngle = Math.Cos(num2);
                 rSinArcAngle = Math.Sin(num2);
             }
@@ -406,18 +406,18 @@ namespace Cure.WPF.Media
             /// 
             /// 历史记录：2001-5-29，其创建者为 MichKa。
             /// </remarks>
-            static double GetBezierDistance(double rDot, double rRadius = 1.0)
+            private static double GetBezierDistance(double rDot, double rRadius = 1.0)
             {
-                var num1 = rRadius * rRadius;
-                var num2 = 0.0;
-                var d1 = 0.5 * (num1 + rDot);
+                double num1 = rRadius * rRadius;
+                double num2 = 0.0;
+                double d1 = 0.5 * (num1 + rDot);
                 if (d1 >= 0.0)
                 {
-                    var d2 = num1 - d1;
+                    double d2 = num1 - d1;
                     if (d2 > 0.0)
                     {
-                        var num3 = Math.Sqrt(d2);
-                        var num4 = 4.0 * (rRadius - Math.Sqrt(d1)) / 3.0;
+                        double num3 = Math.Sqrt(d2);
+                        double num4 = 4.0 * (rRadius - Math.Sqrt(d1)) / 3.0;
                         num2 = num4 > num3 * 1E-06 ? num4 / num3 : 0.0;
                     }
                 }
@@ -427,9 +427,9 @@ namespace Cure.WPF.Media
             /// <summary>
             /// 如果半径与弦长相比太小，则返回 false（针对 NaN 会返回 true），并且半径会修改为接受的值。
             /// </summary>
-            static bool AcceptRadius(double rHalfChord2, double rFuzz2, ref double rRadius)
+            private static bool AcceptRadius(double rHalfChord2, double rFuzz2, ref double rRadius)
             {
-                var flag = rRadius * rRadius > rHalfChord2 * rFuzz2;
+                bool flag = rRadius * rRadius > rHalfChord2 * rFuzz2;
                 if (flag && rRadius < 0.0)
                     rRadius = -rRadius;
                 return flag;
@@ -448,14 +448,14 @@ namespace Cure.WPF.Media
 
             public static PathSegmentImplementation Create(PathSegment segment, Point start)
             {
-                var segmentImplementation = Create(segment);
+                PathSegmentImplementation segmentImplementation = Create(segment);
                 segmentImplementation.Start = start;
                 return segmentImplementation;
             }
 
             public static PathSegmentImplementation Create(PathSegment segment)
             {
-                var segmentImplementation = BezierSegmentImplementation.Create(segment as BezierSegment);
+                PathSegmentImplementation segmentImplementation = BezierSegmentImplementation.Create(segment as BezierSegment);
                 if (segmentImplementation == null)
                 {
                     segmentImplementation = LineSegmentImplementation.Create(segment as LineSegment);
@@ -488,9 +488,9 @@ namespace Cure.WPF.Media
             }
         }
 
-        class BezierSegmentImplementation : PathSegmentImplementation
+        private class BezierSegmentImplementation : PathSegmentImplementation
         {
-            BezierSegment _segment;
+            private BezierSegment _segment;
 
             public static PathSegmentImplementation Create(BezierSegment source)
             {
@@ -503,12 +503,12 @@ namespace Cure.WPF.Media
             {
                 Point[] controlPoints = new Point[4]
                 {
-                    Start,
-                    _segment.Point1,
-                    _segment.Point2,
-                    _segment.Point3
+                    this.Start,
+                    this._segment.Point1,
+                    this._segment.Point2,
+                    this._segment.Point3
                 };
-                var points1 = new List<Point>();
+                List<Point> points1 = new List<Point>();
                 BezierCurveFlattener.FlattenCubic(controlPoints, tolerance, points1, true);
                 points.AddRange(points1);
             }
@@ -518,19 +518,19 @@ namespace Cure.WPF.Media
                 if (index < -1 || index > 2)
                     throw new ArgumentOutOfRangeException(nameof(index));
                 if (index == 0)
-                    return _segment.Point1;
-                return index == 1 ? _segment.Point2 : _segment.Point3;
+                    return this._segment.Point1;
+                return index == 1 ? this._segment.Point2 : this._segment.Point3;
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                yield return SimpleSegment.Create(Start, _segment.Point1, _segment.Point2, _segment.Point3);
+                yield return SimpleSegment.Create(this.Start, this._segment.Point1, this._segment.Point2, this._segment.Point3);
             }
         }
 
-        class QuadraticBezierSegmentImplementation : PathSegmentImplementation
+        private class QuadraticBezierSegmentImplementation : PathSegmentImplementation
         {
-            QuadraticBezierSegment _segment;
+            private QuadraticBezierSegment _segment;
 
             public static PathSegmentImplementation Create(QuadraticBezierSegment source)
             {
@@ -541,13 +541,13 @@ namespace Cure.WPF.Media
 
             public override void Flatten(IList<Point> points, double tolerance)
             {
-                var controlPoints = new Point[3]
+                Point[] controlPoints = new Point[3]
                 {
-                    Start,
-                    _segment.Point1,
-                    _segment.Point2
+                    this.Start,
+                    this._segment.Point1,
+                    this._segment.Point2
                 };
-                var points1 = new List<Point>();
+                List<Point> points1 = new List<Point>();
                 BezierCurveFlattener.FlattenQuadratic(controlPoints, tolerance, points1, true);
                 points.AddRange(points1);
             }
@@ -556,16 +556,16 @@ namespace Cure.WPF.Media
             {
                 if (index < -1 || index > 1)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return index == 0 ? _segment.Point1 : _segment.Point2;
+                return index == 0 ? this._segment.Point1 : this._segment.Point2;
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                yield return SimpleSegment.Create(Start, _segment.Point1, _segment.Point2);
+                yield return SimpleSegment.Create(this.Start, this._segment.Point1, this._segment.Point2);
             }
         }
 
-        class PolyBezierSegmentImplementation : PathSegmentImplementation
+        private class PolyBezierSegmentImplementation : PathSegmentImplementation
         {
             private PolyBezierSegment _segment;
 
@@ -578,49 +578,49 @@ namespace Cure.WPF.Media
 
             public override void Flatten(IList<Point> points, double tolerance)
             {
-                var point = Start;
-                var num = _segment.Points.Count / 3 * 3;
-                for (var index = 0; index < num; index += 3)
+                Point point = this.Start;
+                int num = this._segment.Points.Count / 3 * 3;
+                for (int index = 0; index < num; index += 3)
                 {
-                    var controlPoints = new Point[4]
+                    Point[] controlPoints = new Point[4]
                     {
                         point,
-                        _segment.Points[index],
-                        _segment.Points[index + 1],
-                        _segment.Points[index + 2]
+                        this._segment.Points[index],
+                        this._segment.Points[index + 1],
+                        this._segment.Points[index + 2]
                     };
-                    var points1 = new List<Point>();
+                    List<Point> points1 = new List<Point>();
                     BezierCurveFlattener.FlattenCubic(controlPoints, tolerance, points1, true);
                     points.AddRange(points1);
-                    point = _segment.Points[index + 2];
+                    point = this._segment.Points[index + 2];
                 }
             }
 
             public override Point GetPoint(int index)
             {
-                var num = _segment.Points.Count / 3 * 3;
+                int num = this._segment.Points.Count / 3 * 3;
                 if (index < -1 || index > num - 1)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return index != -1 ? _segment.Points[index] : _segment.Points[num - 1];
+                return index != -1 ? this._segment.Points[index] : this._segment.Points[num - 1];
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                var point0 = Start;
-                var points = _segment.Points;
-                var count = _segment.Points.Count / 3;
-                for (var i = 0; i < count; ++i)
+                Point point0 = this.Start;
+                PointCollection points = this._segment.Points;
+                int count = this._segment.Points.Count / 3;
+                for (int i = 0; i < count; ++i)
                 {
-                    var i3 = i * 3;
+                    int i3 = i * 3;
                     yield return SimpleSegment.Create(point0, points[i3], points[i3 + 1], points[i3 + 2]);
                     point0 = points[i3 + 2];
                 }
             }
         }
 
-        class PolyQuadraticBezierSegmentImplementation : PathSegmentImplementation
+        private class PolyQuadraticBezierSegmentImplementation : PathSegmentImplementation
         {
-            PolyQuadraticBezierSegment _segment;
+            private PolyQuadraticBezierSegment _segment;
 
             public static PathSegmentImplementation Create(PolyQuadraticBezierSegment source)
             {
@@ -631,48 +631,48 @@ namespace Cure.WPF.Media
 
             public override void Flatten(IList<Point> points, double tolerance)
             {
-                var point = Start;
-                var num = _segment.Points.Count / 2 * 2;
-                for (var index = 0; index < num; index += 2)
+                Point point = this.Start;
+                int num = this._segment.Points.Count / 2 * 2;
+                for (int index = 0; index < num; index += 2)
                 {
-                    var controlPoints = new Point[3]
+                    Point[] controlPoints = new Point[3]
                     {
                         point,
-                        _segment.Points[index],
-                        _segment.Points[index + 1]
+                        this._segment.Points[index],
+                        this._segment.Points[index + 1]
                     };
-                    var pointList = new List<Point>();
+                    List<Point> pointList = new List<Point>();
                     BezierCurveFlattener.FlattenQuadratic(controlPoints, tolerance, pointList, true);
                     points.AddRange(pointList);
-                    point = _segment.Points[index + 1];
+                    point = this._segment.Points[index + 1];
                 }
             }
 
             public override Point GetPoint(int index)
             {
-                var num = _segment.Points.Count / 2 * 2;
+                int num = this._segment.Points.Count / 2 * 2;
                 if (index < -1 || index > num - 1)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return index != -1 ? _segment.Points[index] : _segment.Points[num - 1];
+                return index != -1 ? this._segment.Points[index] : this._segment.Points[num - 1];
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                var point0 = Start;
-                var points = _segment.Points;
-                var count = _segment.Points.Count / 2;
-                for (var i = 0; i < count; ++i)
+                Point point0 = this.Start;
+                PointCollection points = this._segment.Points;
+                int count = this._segment.Points.Count / 2;
+                for (int i = 0; i < count; ++i)
                 {
-                    var i2 = i * 2;
+                    int i2 = i * 2;
                     yield return SimpleSegment.Create(point0, points[i2], points[i2 + 1]);
                     point0 = points[i2 + 1];
                 }
             }
         }
 
-        class ArcSegmentImplementation : PathSegmentImplementation
+        private class ArcSegmentImplementation : PathSegmentImplementation
         {
-            ArcSegment _segment;
+            private ArcSegment _segment;
 
             public static PathSegmentImplementation Create(ArcSegment source)
             {
@@ -683,31 +683,31 @@ namespace Cure.WPF.Media
 
             public override void Flatten(IList<Point> points, double tolerance)
             {
-                var bezierSegments = ArcToBezierSegments(_segment, Start);
+                PathSegment bezierSegments = ArcToBezierSegments(this._segment, this.Start);
                 if (bezierSegments == null)
                     return;
-                bezierSegments.FlattenSegment(points, Start, tolerance);
+                bezierSegments.FlattenSegment(points, this.Start, tolerance);
             }
 
             public override Point GetPoint(int index)
             {
                 if (index < -1 || index > 0)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return _segment.Point;
+                return this._segment.Point;
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                var bezierSegments = ArcToBezierSegments(_segment, Start);
+                PathSegment bezierSegments = ArcToBezierSegments(this._segment, this.Start);
                 return bezierSegments != null
-                    ? bezierSegments.GetSimpleSegments(Start)
+                    ? bezierSegments.GetSimpleSegments(this.Start)
                     : Enumerable.Empty<SimpleSegment>();
             }
         }
 
-        class LineSegmentImplementation : PathSegmentImplementation
+        private class LineSegmentImplementation : PathSegmentImplementation
         {
-            LineSegment _segment;
+            private LineSegment _segment;
 
             public static PathSegmentImplementation Create(LineSegment source)
             {
@@ -717,24 +717,24 @@ namespace Cure.WPF.Media
             }
 
             public override void Flatten(IList<Point> points, double tolerance)
-                => points.Add(_segment.Point);
+                => points.Add(this._segment.Point);
 
             public override Point GetPoint(int index)
             {
                 if (index < -1 || index > 0)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return _segment.Point;
+                return this._segment.Point;
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                yield return SimpleSegment.Create(Start, _segment.Point);
+                yield return SimpleSegment.Create(this.Start, this._segment.Point);
             }
         }
 
-        class PolyLineSegmentImplementation : PathSegmentImplementation
+        private class PolyLineSegmentImplementation : PathSegmentImplementation
         {
-            PolyLineSegment _segment;
+            private PolyLineSegment _segment;
 
             public static PathSegmentImplementation Create(PolyLineSegment source)
             {
@@ -744,19 +744,19 @@ namespace Cure.WPF.Media
             }
 
             public override void Flatten(IList<Point> points, double tolerance)
-                => points.AddRange(_segment.Points);
+                => points.AddRange(this._segment.Points);
 
             public override Point GetPoint(int index)
             {
-                if (index < -1 || index > _segment.Points.Count - 1)
+                if (index < -1 || index > this._segment.Points.Count - 1)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                return index != -1 ? _segment.Points[index] : _segment.Points.Last();
+                return index != -1 ? this._segment.Points[index] : this._segment.Points.Last();
             }
 
             public override IEnumerable<SimpleSegment> GetSimpleSegments()
             {
-                var point0 = Start;
-                foreach (var point in _segment.Points)
+                Point point0 = this.Start;
+                foreach (Point point in this._segment.Points)
                 {
                     yield return SimpleSegment.Create(point0, point);
                     point0 = point;

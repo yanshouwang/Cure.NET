@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Cure.WPF
 {
-    static class ICollectionExtension
+    internal static class ICollectionExtension
     {
         /// <summary>
         /// 将项目范围添加到集合的末尾。如果集合是列表，则使用 List.AddRange。
@@ -28,7 +28,7 @@ namespace Cure.WPF
             }
             else
             {
-                foreach (var newItem in newItems)
+                foreach (T newItem in newItems)
                 {
                     collection.Add(newItem);
                 }

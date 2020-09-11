@@ -16,26 +16,25 @@ namespace Cure.WPF.Media
     /// <summary>
     /// 提供帮助程序扩展方法以使用 IGeometrySource 和参数。
     /// </summary>
-    static class IGeometrySourceExtension
+    internal static class IGeometrySourceExtension
     {
         public static double GetHalfStrokeThickness(this IGeometrySourceParameters parameter)
         {
             if (parameter.Stroke != null)
             {
-                var strokeThickness = parameter.StrokeThickness;
+                double strokeThickness = parameter.StrokeThickness;
                 if (!double.IsNaN(strokeThickness) && !double.IsInfinity(strokeThickness))
                     return Math.Abs(strokeThickness) / 2.0;
             }
             return 0.0;
         }
 
-        public static GeometryEffect GetGeometryEffect(
-          this IGeometrySourceParameters parameters)
+        public static GeometryEffect GetGeometryEffect(this IGeometrySourceParameters parameters)
         {
             if (!(parameters is DependencyObject dependencyObject))
-                return (GeometryEffect)null;
+                return null;
             GeometryEffect geometryEffect = GeometryEffect.GetGeometryEffect(dependencyObject);
-            return geometryEffect == null || !dependencyObject.Equals((object)geometryEffect.Parent) ? (GeometryEffect)null : geometryEffect;
+            return geometryEffect == null || !dependencyObject.Equals(geometryEffect.Parent) ? null : geometryEffect;
         }
     }
 }

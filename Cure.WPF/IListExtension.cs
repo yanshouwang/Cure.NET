@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Cure.WPF
 {
-    static class IListExtension
+    internal static class IListExtension
     {
         /// <summary>
         /// 获取给定列表的最后一个项目。
@@ -46,7 +46,7 @@ namespace Cure.WPF
             }
             else
             {
-                for (var index = list.Count - 1; index >= count; --index)
+                for (int index = list.Count - 1; index >= count; --index)
                     list.RemoveAt(index);
             }
             return true;
@@ -69,7 +69,7 @@ namespace Cure.WPF
             }
             else
             {
-                for (var count1 = list.Count; count1 < count; ++count1)
+                for (int count1 = list.Count; count1 < count; ++count1)
                     list.Add(factory == null ? default : factory());
             }
             return true;

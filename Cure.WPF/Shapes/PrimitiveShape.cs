@@ -21,9 +21,10 @@ namespace Cure.WPF.Shapes
     /// </summary>
     public abstract class PrimitiveShape : Shape, IGeometrySourceParameters, IShape
     {
-        IGeometrySource _geometrySource;
-        IGeometrySource GeometrySource
-            => _geometrySource ??= CreateGeometrySource();
+        private IGeometrySource _geometrySource;
+
+        private IGeometrySource GeometrySource
+            => this._geometrySource ??= this.CreateGeometrySource();
 
         static PrimitiveShape()
         {
@@ -33,10 +34,7 @@ namespace Cure.WPF.Shapes
                 1.0, DrawingPropertyMetadataOptions.AffectsRender));
         }
 
-        void RealizeGeometry()
-        {
-            RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
-        }
+        private void RealizeGeometry() => RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
         /// 通过创建几何图形源来扩展形状的绘制方式。
@@ -45,12 +43,12 @@ namespace Cure.WPF.Shapes
 
         #region 重写
 
-        protected override sealed Geometry DefiningGeometry
-            => GeometrySource.Geometry ?? Geometry.Empty;
+        protected sealed override Geometry DefiningGeometry
+            => this.GeometrySource.Geometry ?? Geometry.Empty;
 
         /// <summary>提供 Silverlight 布局传递的“度量值”部分的行为。类可以替代此方法以定义其自己的“度量值”传递行为。</summary>
         /// <returns>此对象根据其子对象分配大小的计算或者可能根据其他注意事项（如固定容器大小）确定的在布局过程中所需的大小。</returns>
-        /// <param name="availableSize">此对象可以提供给子对象的可用大小。可以将值指定为无穷大 (<see cref="System.Double.PositiveInfinity" />)，以指明对象大小将调整为可用的任何内容的大小。</param>
+        /// <param name="availableSize">此对象可以提供给子对象的可用大小。可以将值指定为无穷大 (<see cref="double.PositiveInfinity" />)，以指明对象大小将调整为可用的任何内容的大小。</param>
         /// <remarks>
         /// 在 WPF 中，测量值替代利用 Shape.DefiningGeometry 进行工作，Shape.DefiningGeometry 并不始终跟预计的一样。有关详细信息，请参阅错误 99497，其中 WPF 默认情况下没有正确的测量值。
         ///
@@ -58,10 +56,7 @@ namespace Cure.WPF.Shapes
         ///
         /// 返回的应该是此形状无需剪辑便可正确呈现的最小尺寸。默认情况下，呈现的形状可以小到一个点，因此会返回笔划粗细。
         /// </remarks>
-        protected override Size MeasureOverride(Size constraint)
-        {
-            return new Size(base.StrokeThickness, base.StrokeThickness);
-        }
+        protected override Size MeasureOverride(Size constraint) => new Size(base.StrokeThickness, base.StrokeThickness);
 
         /// <summary>提供 Silverlight 布局传递的“排列”部分的行为。类可以替代此方法以定义其自己的“排列”传递行为。</summary>
         /// <returns>在布局中排列该元素后使用的实际大小。</returns>
@@ -69,9 +64,9 @@ namespace Cure.WPF.Shapes
         /// <remarks> <see cref="Cure.WPF.Shapes.PrimitiveShape" /> 将在 Geometry 失效后重新计算它，并更新 RenderedGeometry 和 GeometryMargin。</remarks>
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (GeometrySource.UpdateGeometry(this, finalSize.ToBounds()))
+            if (this.GeometrySource.UpdateGeometry(this, finalSize.ToBounds()))
             {
-                RealizeGeometry();
+                this.RealizeGeometry();
             }
             base.ArrangeOverride(finalSize);
             return finalSize;
@@ -88,11 +83,11 @@ namespace Cure.WPF.Shapes
         {
             get
             {
-                if (RenderedGeometry == null)
+                if (this.RenderedGeometry == null)
                 {
                     return default;
                 }
-                return GeometrySource.LogicalBounds.Subtract(RenderedGeometry.Bounds);
+                return this.GeometrySource.LogicalBounds.Subtract(this.RenderedGeometry.Bounds);
             }
         }
 
@@ -106,9 +101,9 @@ namespace Cure.WPF.Shapes
         /// </summary>
         public void InvalidateGeometry(InvalidateGeometryReasons reasons)
         {
-            if (GeometrySource.InvalidateGeometry(reasons))
+            if (this.GeometrySource.InvalidateGeometry(reasons))
             {
-                InvalidateArrange();
+                this.InvalidateArrange();
             }
         }
 

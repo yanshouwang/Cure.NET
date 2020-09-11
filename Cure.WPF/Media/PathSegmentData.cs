@@ -16,12 +16,12 @@ namespace Cure.WPF.Media
     /// <summary>
     /// PathSegment 和相应 StartPoint 的元组数据结构。
     /// </summary>
-    class PathSegmentData
+    internal class PathSegmentData
     {
         public PathSegmentData(Point startPoint, PathSegment pathSegment)
         {
-            PathSegment = pathSegment;
-            StartPoint = startPoint;
+            this.PathSegment = pathSegment;
+            this.StartPoint = startPoint;
         }
 
         public Point StartPoint { get; }

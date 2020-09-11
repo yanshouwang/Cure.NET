@@ -12,14 +12,14 @@ using System.Windows;
 
 namespace Cure.WPF
 {
-    static class RectExtension
+    internal static class RectExtension
     {
         public static Thickness Subtract(this Rect lhs, Rect rhs)
         {
-            var left = rhs.Left - lhs.Left;
-            var top = rhs.Top - lhs.Top;
-            var right = lhs.Right - rhs.Right;
-            var bottom = lhs.Bottom - rhs.Bottom;
+            double left = rhs.Left - lhs.Left;
+            double top = rhs.Top - lhs.Top;
+            double right = lhs.Right - rhs.Right;
+            double bottom = lhs.Bottom - rhs.Bottom;
             return new Thickness(left, top, right, bottom);
         }
 
@@ -34,9 +34,9 @@ namespace Cure.WPF
 
         public static Rect Resize(this Rect rect, double ratioX, double ratioY)
         {
-            var point = rect.Center();
-            var width = rect.Width * ratioX;
-            var height = rect.Height * ratioY;
+            Point point = rect.Center();
+            double width = rect.Width * ratioX;
+            double height = rect.Height * ratioY;
             return new Rect(point.X - width / 2.0, point.Y - height / 2.0, width, height);
         }
     }

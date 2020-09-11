@@ -20,14 +20,15 @@ namespace Cure.WPF.Media
     /// </summary>
     public sealed class SketchGeometryEffect : GeometryEffect
     {
-        const double EXPECTED_LENGTH_MEAN = 8.0;
-        const double NORMAL_DISTURB_VARIANCE = 0.5;
-        const double TANGENT_DISTURB_VARIANCE = 1.0;
-        const double BSP_LINE_WEIGHT = 0.05;
+        private const double EXPECTED_LENGTH_MEAN = 8.0;
+        private const double NORMAL_DISTURB_VARIANCE = 0.5;
+        private const double TANGENT_DISTURB_VARIANCE = 1.0;
+        private const double BSP_LINE_WEIGHT = 0.05;
+
         /// <summary>
         /// 在创建时使用相同的随机种子以使视觉闪烁保持最小。
         /// </summary>
-        readonly long _randomSeed = DateTime.Now.Ticks;
+        private readonly long _randomSeed = DateTime.Now.Ticks;
 
         /// <summary>
         /// 对几何图形效果进行深层复制。
@@ -51,58 +52,58 @@ namespace Cure.WPF.Media
         /// <returns>当 cachedGeometry 上的任何内容已更新时返回 true。</returns>
         protected override bool UpdateCachedGeometry(Geometry input)
         {
-            var flag = false;
-            var inputPath = input.AsPathGeometry();
+            bool flag = false;
+            PathGeometry inputPath = input.AsPathGeometry();
             if (inputPath != null)
-                flag |= UpdateSketchGeometry(inputPath);
+                flag |= this.UpdateSketchGeometry(inputPath);
             else
-                CachedGeometry = input;
+                this.CachedGeometry = input;
             return flag;
         }
 
-        bool UpdateSketchGeometry(PathGeometry inputPath)
+        private bool UpdateSketchGeometry(PathGeometry inputPath)
         {
-            var cachedGeometry = CachedGeometry;
-            var ensureGeometryType = GeometryUtil.EnsureGeometryType(out var result, ref cachedGeometry, () => new PathGeometry());
-            CachedGeometry = cachedGeometry;
-            var ensureListCount = result.Figures.EnsureListCount(inputPath.Figures.Count, () => new PathFigure());
-            var flag = false | ensureGeometryType | ensureListCount;
-            var random = new RandomEngine(_randomSeed);
-            for (var index = 0; index < inputPath.Figures.Count; ++index)
+            Geometry cachedGeometry = this.CachedGeometry;
+            bool ensureGeometryType = GeometryUtil.EnsureGeometryType(out PathGeometry result, ref cachedGeometry, () => new PathGeometry());
+            this.CachedGeometry = cachedGeometry;
+            bool ensureListCount = result.Figures.EnsureListCount(inputPath.Figures.Count, () => new PathFigure());
+            bool flag = false | ensureGeometryType | ensureListCount;
+            RandomEngine random = new RandomEngine(this._randomSeed);
+            for (int index = 0; index < inputPath.Figures.Count; ++index)
             {
-                var figure = inputPath.Figures[index];
-                var closed = figure.IsClosed;
-                var filled = figure.IsFilled;
+                PathFigure figure = inputPath.Figures[index];
+                bool closed = figure.IsClosed;
+                bool filled = figure.IsFilled;
                 if (figure.Segments.Count == 0)
                 {
                     flag = flag | result.Figures[index].SetIfDifferent(PathFigure.StartPointProperty, figure.StartPoint) | result.Figures[index].Segments.EnsureListCount(0);
                 }
                 else
                 {
-                    var list = new List<Point>(figure.Segments.Count * 3);
-                    foreach (var effectiveSegment in GetEffectiveSegments(figure))
+                    List<Point> list = new List<Point>(figure.Segments.Count * 3);
+                    foreach (SimpleSegment effectiveSegment in this.GetEffectiveSegments(figure))
                     {
-                        var pointList1 = new List<Point>
+                        List<Point> pointList1 = new List<Point>
                         {
                             effectiveSegment.Points[0]
                         };
-                        var simpleSegment = effectiveSegment;
-                        var num = 0.0;
+                        SimpleSegment simpleSegment = effectiveSegment;
+                        double num = 0.0;
                         IList<double> doubleList = null;
-                        var pointList2 = pointList1;
-                        var tolerance = num;
-                        var resultParameters = doubleList;
+                        List<Point> pointList2 = pointList1;
+                        double tolerance = num;
+                        IList<double> resultParameters = doubleList;
                         simpleSegment.Flatten(pointList2, tolerance, resultParameters);
-                        PolylineData polyline = new PolylineData((IList<Point>)pointList1);
+                        PolylineData polyline = new PolylineData(pointList1);
                         if (pointList1.Count > 1 && polyline.TotalLength > 4.0)
                         {
-                            var sampleCount = (int)Math.Max(2.0, Math.Ceiling(polyline.TotalLength / 8.0));
-                            double interval = polyline.TotalLength / (double)sampleCount;
-                            var scale = interval / 8.0;
+                            int sampleCount = (int)Math.Max(2.0, Math.Ceiling(polyline.TotalLength / 8.0));
+                            double interval = polyline.TotalLength / sampleCount;
+                            double scale = interval / 8.0;
                             List<Point> samplePoints = new List<Point>(sampleCount);
                             List<Vector> sampleNormals = new List<Vector>(sampleCount);
                             int sampleIndex = 0;
-                            PolylineHelper.PathMarch(polyline, 0.0, 0.0, (Func<MarchLocation, double>)(location =>
+                            PolylineUtil.PathMarch(polyline, 0.0, 0.0, location =>
                             {
                                 if (location.Reason == MarchStopReason.CompletePolyline)
                                     return double.NaN;
@@ -113,30 +114,30 @@ namespace Cure.WPF.Media
                                 samplePoints.Add(location.GetPoint(polyline.Points));
                                 sampleNormals.Add(location.GetNormal(polyline));
                                 return interval;
-                            }));
-                            SketchGeometryEffect.DisturbPoints(random, scale, (IList<Point>)samplePoints, (IList<Vector>)sampleNormals);
-                            list.AddRange((IEnumerable<Point>)samplePoints);
+                            });
+                            DisturbPoints(random, scale, samplePoints, sampleNormals);
+                            list.AddRange(samplePoints);
                         }
                         else
                         {
-                            list.AddRange((IEnumerable<Point>)pointList1);
-                            list.RemoveLast<Point>();
+                            list.AddRange(pointList1);
+                            list.RemoveLast();
                         }
                     }
                     if (!closed)
-                        list.Add(figure.Segments.Last<PathSegment>().GetLastPoint());
-                    flag |= PathFigureUtil.SyncPolylineFigure(result.Figures[index], (IList<Point>)list, closed, filled);
+                        list.Add(figure.Segments.Last().GetLastPoint());
+                    flag |= PathFigureUtil.SyncPolylineFigure(result.Figures[index], list, closed, filled);
                 }
             }
             if (flag)
-                this.cachedGeometry = PathGeometryHelper.FixPathGeometryBoundary(this.cachedGeometry);
+                this.CachedGeometry = GeometryUtil.FixPathGeometryBoundary(this.CachedGeometry);
             return flag;
         }
 
-        static void DisturbPoints(RandomEngine random, double scale, IList<Point> points, IList<Vector> normals)
+        private static void DisturbPoints(RandomEngine random, double scale, IList<Point> points, IList<Vector> normals)
         {
-            var count = points.Count;
-            for (var index = 1; index < count; ++index)
+            int count = points.Count;
+            for (int index = 1; index < count; ++index)
             {
                 double num1 = random.NextGaussian(0.0, 1.0 * scale);
                 double num2 = random.NextUniform(-0.5, 0.5) * scale;
@@ -147,7 +148,7 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 循环访问给定路径图中的所有简单段，包括右弦。
         /// </summary>
-        IEnumerable<SimpleSegment> GetEffectiveSegments(PathFigure pathFigure)
+        private IEnumerable<SimpleSegment> GetEffectiveSegments(PathFigure pathFigure)
         {
             Point lastPoint = pathFigure.StartPoint;
             foreach (PathSegmentData allSegment in pathFigure.AllSegments())

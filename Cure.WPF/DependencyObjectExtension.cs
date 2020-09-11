@@ -12,7 +12,7 @@ using System.Windows;
 
 namespace Cure.WPF
 {
-    static class DependencyObjectExtension
+    internal static class DependencyObjectExtension
     {
         /// <summary>
         /// 如果不同，则设置值。在可能的情况下避免设置本地值。在值发生了更改的情况下返回 true。

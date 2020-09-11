@@ -11,7 +11,7 @@ namespace Cure.WPF.Media.Animation
     /// <summary>
     /// Describes the behavior of an animation.
     /// </summary>
-    enum AnimationType : byte
+    internal enum AnimationType : byte
     {
         /// <summary>
         /// The animation animates from the defaultOriginValue value to the defaultDestinationValue.

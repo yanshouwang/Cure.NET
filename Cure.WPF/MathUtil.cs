@@ -15,7 +15,7 @@ namespace Cure.WPF
     /// <summary>
     /// 用于提供与浮点运算相关的静态属性和方法的帮助程序类。
     /// </summary>
-    static class MathUtil
+    internal static class MathUtil
     {
         /// <summary>
         /// 考虑到两个值相同时的最小距离。注意：MIL/SL 中的内部浮点是浮点型，不是双精度型。

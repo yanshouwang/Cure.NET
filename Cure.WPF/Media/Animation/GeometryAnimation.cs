@@ -7,7 +7,6 @@
 // ---------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
@@ -27,9 +26,9 @@ namespace Cure.WPF.Media.Animation
         /// <summary>
         /// This is used if the user has specified From, To, and/or By values.
         /// </summary>
-        Geometry[] _keyValues;
-        AnimationType _animationType;
-        bool _isAnimationFunctionValid;
+        private Geometry[] _keyValues;
+        private AnimationType _animationType;
+        private bool _isAnimationFunctionValid;
 
         #endregion
 
@@ -37,8 +36,8 @@ namespace Cure.WPF.Media.Animation
 
         public Geometry From
         {
-            get => (Geometry)GetValue(FromProperty);
-            set => SetValue(FromProperty, value);
+            get => (Geometry)this.GetValue(FromProperty);
+            set => this.SetValue(FromProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for From.  This enables animation, styling, binding, etc...
@@ -52,8 +51,8 @@ namespace Cure.WPF.Media.Animation
 
         public Geometry To
         {
-            get => (Geometry)GetValue(ToProperty);
-            set => SetValue(ToProperty, value);
+            get => (Geometry)this.GetValue(ToProperty);
+            set => this.SetValue(ToProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for To.  This enables animation, styling, binding, etc...
@@ -67,8 +66,8 @@ namespace Cure.WPF.Media.Animation
 
         public Geometry By
         {
-            get => (Geometry)GetValue(ByProperty);
-            set => SetValue(ByProperty, value);
+            get => (Geometry)this.GetValue(ByProperty);
+            set => this.SetValue(ByProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for By.  This enables animation, styling, binding, etc...
@@ -82,8 +81,8 @@ namespace Cure.WPF.Media.Animation
 
         public IEasingFunction EasingFunction
         {
-            get => (IEasingFunction)GetValue(EasingFunctionProperty);
-            set => SetValue(EasingFunctionProperty, value);
+            get => (IEasingFunction)this.GetValue(EasingFunctionProperty);
+            set => this.SetValue(EasingFunctionProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for EasingFunction.  This enables animation, styling, binding, etc...
@@ -95,14 +94,14 @@ namespace Cure.WPF.Media.Animation
 
         public bool Additive
         {
-            get => (bool)GetValue(IsAdditiveProperty);
-            set => SetValue(IsAdditiveProperty, value);
+            get => (bool)this.GetValue(IsAdditiveProperty);
+            set => this.SetValue(IsAdditiveProperty, value);
         }
 
         public bool Cumulative
         {
-            get => (bool)GetValue(IsCumulativeProperty);
-            set => SetValue(IsCumulativeProperty, value);
+            get => (bool)this.GetValue(IsCumulativeProperty);
+            set => this.SetValue(IsCumulativeProperty, value);
         }
 
         #endregion
@@ -126,8 +125,8 @@ namespace Cure.WPF.Media.Animation
         public GeometryAnimation(Geometry toValue, Duration duration)
             : this()
         {
-            To = toValue;
-            Duration = duration;
+            this.To = toValue;
+            this.Duration = duration;
         }
 
         /// <summary>
@@ -139,9 +138,9 @@ namespace Cure.WPF.Media.Animation
         public GeometryAnimation(Geometry toValue, Duration duration, FillBehavior fillBehavior)
             : this()
         {
-            To = toValue;
-            Duration = duration;
-            FillBehavior = fillBehavior;
+            this.To = toValue;
+            this.Duration = duration;
+            this.FillBehavior = fillBehavior;
         }
 
         /// <summary>
@@ -153,9 +152,9 @@ namespace Cure.WPF.Media.Animation
         public GeometryAnimation(Geometry fromValue, Geometry toValue, Duration duration)
             : this()
         {
-            From = fromValue;
-            To = toValue;
-            Duration = duration;
+            this.From = fromValue;
+            this.To = toValue;
+            this.Duration = duration;
         }
 
         /// <summary>
@@ -168,73 +167,73 @@ namespace Cure.WPF.Media.Animation
         public GeometryAnimation(Geometry fromValue, Geometry toValue, Duration duration, FillBehavior fillBehavior)
             : this()
         {
-            From = fromValue;
-            To = toValue;
-            Duration = duration;
-            FillBehavior = fillBehavior;
+            this.From = fromValue;
+            this.To = toValue;
+            this.Duration = duration;
+            this.FillBehavior = fillBehavior;
         }
 
         #endregion
 
         #region 方法
 
-        static void OnAnimationFunctionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnAnimationFunctionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var a = (GeometryAnimation)d;
+            GeometryAnimation a = (GeometryAnimation)d;
             a._isAnimationFunctionValid = false;
             //a.PropertyChanged(e.Property);
         }
 
-        static bool ValidateFromToOrByValue(object value)
+        private static bool ValidateFromToOrByValue(object value)
         {
             Geometry geometry = (Geometry)value;
             if (geometry != null)
             {
-                return AnimationHelper.IsValidAnimationValueGeometry(geometry);
+                return AnimationUtil.IsValidAnimationValueGeometry(geometry);
             }
             return true;
         }
 
-        void ValidateAnimationFunction()
+        private void ValidateAnimationFunction()
         {
-            _animationType = AnimationType.Automatic;
-            _keyValues = null;
-            if (From != null)
+            this._animationType = AnimationType.Automatic;
+            this._keyValues = null;
+            if (this.From != null)
             {
-                if (To != null)
+                if (this.To != null)
                 {
-                    _animationType = AnimationType.FromTo;
-                    _keyValues = new Geometry[2];
-                    _keyValues[0] = From;
-                    _keyValues[1] = To;
+                    this._animationType = AnimationType.FromTo;
+                    this._keyValues = new Geometry[2];
+                    this._keyValues[0] = this.From;
+                    this._keyValues[1] = this.To;
                 }
-                else if (By != null)
+                else if (this.By != null)
                 {
-                    _animationType = AnimationType.FromBy;
-                    _keyValues = new Geometry[2];
-                    _keyValues[0] = From;
-                    _keyValues[1] = By;
+                    this._animationType = AnimationType.FromBy;
+                    this._keyValues = new Geometry[2];
+                    this._keyValues[0] = this.From;
+                    this._keyValues[1] = this.By;
                 }
                 else
                 {
-                    _animationType = AnimationType.From;
-                    _keyValues = new Geometry[1];
-                    _keyValues[0] = From;
+                    this._animationType = AnimationType.From;
+                    this._keyValues = new Geometry[1];
+                    this._keyValues[0] = this.From;
                 }
             }
-            else if (To != null)
+            else if (this.To != null)
             {
-                _animationType = AnimationType.To;
-                _keyValues = new Geometry[1];
-                _keyValues[0] = To;
+                this._animationType = AnimationType.To;
+                this._keyValues = new Geometry[1];
+                this._keyValues[0] = this.To;
             }
-            else if (By != null)
+            else if (this.By != null)
             {
-                _animationType = AnimationType.By;
-                _keyValues = new Geometry[1];
-                _keyValues[0] = By;
+                this._animationType = AnimationType.By;
+                this._keyValues = new Geometry[1];
+                this._keyValues[0] = this.By;
             }
-            _isAnimationFunctionValid = true;
+            this._isAnimationFunctionValid = true;
         }
 
         /// <summary>
@@ -266,14 +265,14 @@ namespace Cure.WPF.Media.Animation
         protected override Geometry GetCurrentValueCore(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
         {
             Debug.Assert(animationClock.CurrentState != ClockState.Stopped);
-            if (!_isAnimationFunctionValid)
+            if (!this._isAnimationFunctionValid)
             {
-                ValidateAnimationFunction();
+                this.ValidateAnimationFunction();
             }
-            var progress = animationClock.CurrentProgress.Value;
-            if (EasingFunction != null)
+            double progress = animationClock.CurrentProgress.Value;
+            if (this.EasingFunction != null)
             {
-                progress = EasingFunction.Ease(progress);
+                progress = this.EasingFunction.Ease(progress);
             }
             Geometry from;
             Geometry to;
@@ -281,30 +280,30 @@ namespace Cure.WPF.Media.Animation
             Geometry foundation;
             // need to validate the default origin and destination values if 
             // the animation uses them as the from, to, or foundation values
-            var validateOrigin = false;
-            var validateDestination = false;
-            switch (_animationType)
+            bool validateOrigin = false;
+            bool validateDestination = false;
+            switch (this._animationType)
             {
                 case AnimationType.Automatic:
                     from = defaultOriginValue;
                     to = defaultDestinationValue;
-                    foundation = AnimationHelper.GetZeroValueGeometry(from);
+                    foundation = AnimationUtil.GetZeroValueGeometry(from);
                     accumulated = foundation.Clone();
                     validateOrigin = true;
                     validateDestination = true;
                     break;
                 case AnimationType.From:
-                    from = _keyValues[0];
+                    from = this._keyValues[0];
                     to = defaultDestinationValue;
-                    foundation = AnimationHelper.GetZeroValueGeometry(from);
-                    accumulated = AnimationHelper.GetZeroValueGeometry(from);
+                    foundation = AnimationUtil.GetZeroValueGeometry(from);
+                    accumulated = AnimationUtil.GetZeroValueGeometry(from);
                     validateDestination = true;
                     break;
                 case AnimationType.To:
                     from = defaultOriginValue;
-                    to = _keyValues[0];
-                    foundation = AnimationHelper.GetZeroValueGeometry(from);
-                    accumulated = AnimationHelper.GetZeroValueGeometry(from);
+                    to = this._keyValues[0];
+                    foundation = AnimationUtil.GetZeroValueGeometry(from);
+                    accumulated = AnimationUtil.GetZeroValueGeometry(from);
                     validateOrigin = true;
                     break;
                 case AnimationType.By:
@@ -314,39 +313,39 @@ namespace Cure.WPF.Media.Animation
                     // animations that precede it in the list without having
                     // to manually set the From value to the base value.
                     foundation = defaultOriginValue;
-                    to = _keyValues[0];
-                    from = AnimationHelper.GetZeroValueGeometry(foundation);
-                    accumulated = AnimationHelper.GetZeroValueGeometry(foundation);
+                    to = this._keyValues[0];
+                    from = AnimationUtil.GetZeroValueGeometry(foundation);
+                    accumulated = AnimationUtil.GetZeroValueGeometry(foundation);
                     validateOrigin = true;
                     break;
                 case AnimationType.FromTo:
-                    from = _keyValues[0];
-                    to = _keyValues[1];
-                    if (Additive)
+                    from = this._keyValues[0];
+                    to = this._keyValues[1];
+                    if (this.Additive)
                     {
                         foundation = defaultOriginValue;
-                        accumulated = AnimationHelper.GetZeroValueGeometry(foundation);
+                        accumulated = AnimationUtil.GetZeroValueGeometry(foundation);
                         validateOrigin = true;
                     }
                     else
                     {
-                        foundation = AnimationHelper.GetZeroValueGeometry(from);
-                        accumulated = AnimationHelper.GetZeroValueGeometry(from);
+                        foundation = AnimationUtil.GetZeroValueGeometry(from);
+                        accumulated = AnimationUtil.GetZeroValueGeometry(from);
                     }
                     break;
                 case AnimationType.FromBy:
-                    from = _keyValues[0];
-                    to = AnimationHelper.AddGeometry(_keyValues[0], _keyValues[1]);
-                    if (Additive)
+                    from = this._keyValues[0];
+                    to = AnimationUtil.AddGeometry(this._keyValues[0], this._keyValues[1]);
+                    if (this.Additive)
                     {
                         foundation = defaultOriginValue;
-                        accumulated = AnimationHelper.GetZeroValueGeometry(foundation);
+                        accumulated = AnimationUtil.GetZeroValueGeometry(foundation);
                         validateOrigin = true;
                     }
                     else
                     {
-                        foundation = AnimationHelper.GetZeroValueGeometry(from);
-                        accumulated = AnimationHelper.GetZeroValueGeometry(from);
+                        foundation = AnimationUtil.GetZeroValueGeometry(from);
+                        accumulated = AnimationUtil.GetZeroValueGeometry(from);
                     }
                     break;
                 default:
@@ -357,27 +356,27 @@ namespace Cure.WPF.Media.Animation
                     to = new StreamGeometry();
                     break;
             }
-            if (validateOrigin && !AnimationHelper.IsValidAnimationValueGeometry(defaultOriginValue))
+            if (validateOrigin && !AnimationUtil.IsValidAnimationValueGeometry(defaultOriginValue))
             {
                 throw new InvalidOperationException();
             }
-            if (validateDestination && !AnimationHelper.IsValidAnimationValueGeometry(defaultDestinationValue))
+            if (validateDestination && !AnimationUtil.IsValidAnimationValueGeometry(defaultDestinationValue))
             {
                 throw new InvalidOperationException();
             }
-            if (Cumulative)
+            if (this.Cumulative)
             {
-                var currentRepeat = (double)(animationClock.CurrentIteration - 1);
+                double currentRepeat = (double)(animationClock.CurrentIteration - 1);
                 if (currentRepeat > 0.0)
                 {
-                    var accumulator = AnimationHelper.SubtractGeometry(to, from);
-                    accumulated = AnimationHelper.ScaleGeometry(accumulator, currentRepeat);
+                    Geometry accumulator = AnimationUtil.SubtractGeometry(to, from);
+                    accumulated = AnimationUtil.ScaleGeometry(accumulator, currentRepeat);
                 }
             }
             // return foundation + accumulated + from + ((to - from) * progress)
-            var geometry1 = AnimationHelper.AddGeometry(foundation, accumulated);
-            var geometry2 = AnimationHelper.InterpolateGeometry(from, to, progress);
-            return AnimationHelper.AddGeometry(geometry1, geometry2);
+            Geometry geometry1 = AnimationUtil.AddGeometry(foundation, accumulated);
+            Geometry geometry2 = AnimationUtil.InterpolateGeometry(from, to, progress);
+            return AnimationUtil.AddGeometry(geometry1, geometry2);
         }
 
         #endregion
@@ -388,10 +387,7 @@ namespace Cure.WPF.Media.Animation
         /// Creates a copy of this GeometryAnimation
         /// </summary>
         /// <returns>The copy</returns>
-        public new GeometryAnimation Clone()
-        {
-            return (GeometryAnimation)base.Clone();
-        }
+        public new GeometryAnimation Clone() => (GeometryAnimation)base.Clone();
 
         //
         // Note that we don't override the Clone virtuals (CloneCore, CloneCurrentValueCore,
@@ -407,10 +403,7 @@ namespace Cure.WPF.Media.Animation
         /// Implementation of <see cref="Freezable.CreateInstanceCore">Freezable.CreateInstanceCore</see>.
         /// </summary>
         /// <returns>The new Freezable.</returns>
-        protected override Freezable CreateInstanceCore()
-        {
-            return new GeometryAnimation();
-        }
+        protected override Freezable CreateInstanceCore() => new GeometryAnimation();
 
         #endregion
     }

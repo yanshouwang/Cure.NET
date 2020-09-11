@@ -36,10 +36,7 @@ namespace Cure.WPF.Media.Animation
         /// Creates a copy of this DoubleAnimationBase
         /// </summary>
         /// <returns>The copy</returns>
-        public new GeometryAnimationBase Clone()
-        {
-            return (GeometryAnimationBase)base.Clone();
-        }
+        public new GeometryAnimationBase Clone() => (GeometryAnimationBase)base.Clone();
 
         #endregion
 
@@ -48,11 +45,11 @@ namespace Cure.WPF.Media.Animation
         /// <summary>
         /// Returns the type of the target property
         /// </summary>
-        public override sealed Type TargetPropertyType
+        public sealed override Type TargetPropertyType
         {
             get
             {
-                ReadPreamble();
+                this.ReadPreamble();
                 return typeof(Geometry);
             }
         }
@@ -83,10 +80,7 @@ namespace Cure.WPF.Media.Animation
         /// output value.
         /// </param>
         /// <returns>The value this animation believes should be the current value for the property.</returns>
-        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)
-        {
-            return GetCurrentValue((Geometry)defaultOriginValue, (Geometry)defaultDestinationValue, animationClock);
-        }
+        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock) => this.GetCurrentValue((Geometry)defaultOriginValue, (Geometry)defaultDestinationValue, animationClock);
 
         /// <summary>
         /// Calculates the value this animation believes should be the current value for the property.
@@ -116,7 +110,7 @@ namespace Cure.WPF.Media.Animation
         /// <returns>The value this animation believes should be the current value for the property.</returns>
         public Geometry GetCurrentValue(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
         {
-            ReadPreamble();
+            this.ReadPreamble();
             if (animationClock == null)
             {
                 throw new ArgumentNullException("animationClock");
@@ -125,7 +119,7 @@ namespace Cure.WPF.Media.Animation
             {
                 return defaultDestinationValue;
             }
-            return GetCurrentValueCore(defaultOriginValue, defaultDestinationValue, animationClock);
+            return this.GetCurrentValueCore(defaultOriginValue, defaultDestinationValue, animationClock);
         }
 
         /// <summary>

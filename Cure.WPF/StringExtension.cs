@@ -12,12 +12,12 @@ using System.ComponentModel;
 
 namespace Cure.WPF
 {
-    static class StringExtension
+    internal static class StringExtension
     {
         public static T GetValue<T>(this string str)
         {
-            var type = typeof(T);
-            var value = (T)TypeDescriptor.GetConverter(type).ConvertFromString(str);
+            System.Type type = typeof(T);
+            T value = (T)TypeDescriptor.GetConverter(type).ConvertFromString(str);
             return value;
         }
     }

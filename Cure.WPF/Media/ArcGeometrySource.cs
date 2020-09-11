@@ -15,10 +15,10 @@ using System.Windows.Media;
 
 namespace Cure.WPF.Media
 {
-    class ArcGeometrySource : GeometrySource<IArcGeometrySourceParameters>
+    internal class ArcGeometrySource : GeometrySource<IArcGeometrySourceParameters>
     {
-        double _relativeThickness;
-        double _absoluteThickness;
+        private double _relativeThickness;
+        private double _absoluteThickness;
 
         /// <summary>
         /// 假定纵横比为 1:1，则弧会认为 Stretch.None 与 Stretch.Fill 相同。
@@ -29,115 +29,115 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 使相对于范围框的粗细以及大小为绝对像素的粗细标准化。相对粗细 = 0 -&gt; 全圆半径或固定值。相对粗细 = 1 -&gt; 缩小为点或已退化。
         /// </summary>
-        void NormalizeThickness(IArcGeometrySourceParameters parameters)
+        private void NormalizeThickness(IArcGeometrySourceParameters parameters)
         {
-            var rhs = Math.Min(LogicalBounds.Width / 2.0, LogicalBounds.Height / 2.0);
-            var lhs = parameters.ArcThickness;
+            double rhs = Math.Min(this.LogicalBounds.Width / 2.0, this.LogicalBounds.Height / 2.0);
+            double lhs = parameters.ArcThickness;
             if (parameters.ArcThicknessUnit == UnitType.Pixel)
                 lhs = MathUtil.SafeDivide(lhs, rhs, 0.0);
-            _relativeThickness = MathUtil.EnsureRange(lhs, 0.0, 1.0);
-            _absoluteThickness = rhs * _relativeThickness;
+            this._relativeThickness = MathUtil.EnsureRange(lhs, 0.0, 1.0);
+            this._absoluteThickness = rhs * this._relativeThickness;
         }
 
         /// <summary>
         /// 弧退化为指向内心/内部法线的线条。
         /// </summary>
-        bool UpdateZeroAngleGeometry(bool relativeMode, double angle)
+        private bool UpdateZeroAngleGeometry(bool relativeMode, double angle)
         {
-            var flag = false;
-            var arcPoint = GeometryUtil.GetArcPoint(angle, LogicalBounds);
-            var logicalBounds = LogicalBounds;
-            var radiusX = logicalBounds.Width / 2.0;
-            var radiusY = logicalBounds.Height / 2.0;
+            bool flag = false;
+            Point arcPoint = GeometryUtil.GetArcPoint(angle, this.LogicalBounds);
+            Rect logicalBounds = this.LogicalBounds;
+            double radiusX = logicalBounds.Width / 2.0;
+            double radiusY = logicalBounds.Height / 2.0;
             Point point;
             if (relativeMode || MathUtil.AreClose(radiusX, radiusY))
             {
-                var bound = LogicalBounds.Resize(1.0 - _relativeThickness);
+                Rect bound = this.LogicalBounds.Resize(1.0 - this._relativeThickness);
                 point = GeometryUtil.GetArcPoint(angle, bound);
             }
             else
             {
-                var intersect = InnerCurveSelfIntersect(radiusX, radiusY, _absoluteThickness);
-                var angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, angle, angle);
-                var num = angleRanges[0] * Math.PI / 180.0;
-                var vector = new Vector(radiusY * Math.Sin(num), -radiusX * Math.Cos(num));
-                point = GeometryUtil.GetArcPoint(angleRanges[0], LogicalBounds) - vector.Normalized() * _absoluteThickness;
+                double intersect = InnerCurveSelfIntersect(radiusX, radiusY, this._absoluteThickness);
+                double[] angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, angle, angle);
+                double num = angleRanges[0] * Math.PI / 180.0;
+                Vector vector = new Vector(radiusY * Math.Sin(num), -radiusX * Math.Cos(num));
+                point = GeometryUtil.GetArcPoint(angleRanges[0], this.LogicalBounds) - vector.Normalized() * this._absoluteThickness;
             }
-            var cachedGeometry = CachedGeometry;
-            var flag1 = GeometryUtil.EnsureGeometryType(out var result, ref cachedGeometry, () => new LineGeometry());
-            CachedGeometry = cachedGeometry;
-            var flag2 = result.SetIfDifferent(LineGeometry.StartPointProperty, arcPoint);
-            var flag3 = result.SetIfDifferent(LineGeometry.EndPointProperty, point);
+            Geometry cachedGeometry = this.CachedGeometry;
+            bool flag1 = GeometryUtil.EnsureGeometryType(out LineGeometry result, ref cachedGeometry, () => new LineGeometry());
+            this.CachedGeometry = cachedGeometry;
+            bool flag2 = result.SetIfDifferent(LineGeometry.StartPointProperty, arcPoint);
+            bool flag3 = result.SetIfDifferent(LineGeometry.EndPointProperty, point);
             return flag | flag1 | flag2 | flag3;
         }
 
-        bool UpdateEllipseGeometry(bool filled)
+        private bool UpdateEllipseGeometry(bool filled)
         {
-            var flag1 = false;
-            var y = MathUtil.Lerp(LogicalBounds.Top, LogicalBounds.Bottom, 0.5);
-            var point1 = new Point(LogicalBounds.Left, y);
-            var point2 = new Point(LogicalBounds.Right, y);
-            var cachedGeometry = CachedGeometry;
-            var flag21 = GeometryUtil.EnsureGeometryType(out var result1, ref cachedGeometry, () => new PathGeometry());
-            CachedGeometry = cachedGeometry;
-            var flag22 = result1.Figures.EnsureListCount(1, () => new PathFigure());
-            var flag2 = flag1 | flag21 | flag22;
-            var figure = result1.Figures[0];
-            var flag31 = figure.SetIfDifferent(PathFigure.IsClosedProperty, true);
-            var flag32 = figure.SetIfDifferent(PathFigure.IsFilledProperty, filled);
-            var flag33 = figure.Segments.EnsureListCount(2, () => new ArcSegment());
-            var flag34 = figure.SetIfDifferent(PathFigure.StartPointProperty, point1);
-            var flag35 = GeometryUtil.EnsureSegmentType(out var result2, figure.Segments, 0, () => new ArcSegment());
-            var flag36 = GeometryUtil.EnsureSegmentType(out var result3, figure.Segments, 1, () => new ArcSegment());
-            var flag3 = flag2 | flag31 | flag32 | flag33 | flag34 | flag35 | flag36;
-            var size = new Size(LogicalBounds.Width / 2.0, LogicalBounds.Height / 2.0);
-            var flag41 = result2.SetIfDifferent(ArcSegment.IsLargeArcProperty, false);
-            var flag42 = result2.SetIfDifferent(ArcSegment.SizeProperty, size);
-            var flag43 = result2.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise);
-            var flag44 = result2.SetIfDifferent(ArcSegment.PointProperty, point2);
-            var flag45 = result3.SetIfDifferent(ArcSegment.IsLargeArcProperty, false);
-            var flag46 = result3.SetIfDifferent(ArcSegment.SizeProperty, size);
-            var flag47 = result3.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise);
-            var flag48 = result3.SetIfDifferent(ArcSegment.PointProperty, point1);
+            bool flag1 = false;
+            double y = MathUtil.Lerp(this.LogicalBounds.Top, this.LogicalBounds.Bottom, 0.5);
+            Point point1 = new Point(this.LogicalBounds.Left, y);
+            Point point2 = new Point(this.LogicalBounds.Right, y);
+            Geometry cachedGeometry = this.CachedGeometry;
+            bool flag21 = GeometryUtil.EnsureGeometryType(out PathGeometry result1, ref cachedGeometry, () => new PathGeometry());
+            this.CachedGeometry = cachedGeometry;
+            bool flag22 = result1.Figures.EnsureListCount(1, () => new PathFigure());
+            bool flag2 = flag1 | flag21 | flag22;
+            PathFigure figure = result1.Figures[0];
+            bool flag31 = figure.SetIfDifferent(PathFigure.IsClosedProperty, true);
+            bool flag32 = figure.SetIfDifferent(PathFigure.IsFilledProperty, filled);
+            bool flag33 = figure.Segments.EnsureListCount(2, () => new ArcSegment());
+            bool flag34 = figure.SetIfDifferent(PathFigure.StartPointProperty, point1);
+            bool flag35 = GeometryUtil.EnsureSegmentType(out ArcSegment result2, figure.Segments, 0, () => new ArcSegment());
+            bool flag36 = GeometryUtil.EnsureSegmentType(out ArcSegment result3, figure.Segments, 1, () => new ArcSegment());
+            bool flag3 = flag2 | flag31 | flag32 | flag33 | flag34 | flag35 | flag36;
+            Size size = new Size(this.LogicalBounds.Width / 2.0, this.LogicalBounds.Height / 2.0);
+            bool flag41 = result2.SetIfDifferent(ArcSegment.IsLargeArcProperty, false);
+            bool flag42 = result2.SetIfDifferent(ArcSegment.SizeProperty, size);
+            bool flag43 = result2.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise);
+            bool flag44 = result2.SetIfDifferent(ArcSegment.PointProperty, point2);
+            bool flag45 = result3.SetIfDifferent(ArcSegment.IsLargeArcProperty, false);
+            bool flag46 = result3.SetIfDifferent(ArcSegment.SizeProperty, size);
+            bool flag47 = result3.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise);
+            bool flag48 = result3.SetIfDifferent(ArcSegment.PointProperty, point1);
             return flag3 | flag41 | flag42 | flag43 | flag44 | flag45 | flag46 | flag47 | flag48;
         }
 
-        bool UpdateFullRingGeometry(bool relativeMode)
+        private bool UpdateFullRingGeometry(bool relativeMode)
         {
-            var cachedGeometry = CachedGeometry;
-            var flag11 = GeometryUtil.EnsureGeometryType(out var result, ref cachedGeometry, () => new PathGeometry());
-            CachedGeometry = cachedGeometry;
-            var flag12 = result.SetIfDifferent(PathGeometry.FillRuleProperty, FillRule.EvenOdd);
-            var flag13 = result.Figures.EnsureListCount(2, () => new PathFigure());
-            var flag14 = PathFigureUtil.SyncEllipseFigure(result.Figures[0], LogicalBounds, SweepDirection.Clockwise);
-            var flag1 = false | flag11 | flag12 | flag13 | flag14;
-            var logicalBounds = LogicalBounds;
-            var radiusX = logicalBounds.Width / 2.0;
-            var radiusY = logicalBounds.Height / 2.0;
+            Geometry cachedGeometry = this.CachedGeometry;
+            bool flag11 = GeometryUtil.EnsureGeometryType(out PathGeometry result, ref cachedGeometry, () => new PathGeometry());
+            this.CachedGeometry = cachedGeometry;
+            bool flag12 = result.SetIfDifferent(PathGeometry.FillRuleProperty, FillRule.EvenOdd);
+            bool flag13 = result.Figures.EnsureListCount(2, () => new PathFigure());
+            bool flag14 = PathFigureUtil.SyncEllipseFigure(result.Figures[0], this.LogicalBounds, SweepDirection.Clockwise);
+            bool flag1 = false | flag11 | flag12 | flag13 | flag14;
+            Rect logicalBounds = this.LogicalBounds;
+            double radiusX = logicalBounds.Width / 2.0;
+            double radiusY = logicalBounds.Height / 2.0;
             bool flag2;
             if (relativeMode || MathUtil.AreClose(radiusX, radiusY))
             {
-                var bounds = this.LogicalBounds.Resize(1.0 - this._relativeThickness);
+                Rect bounds = this.LogicalBounds.Resize(1.0 - this._relativeThickness);
                 flag2 = flag1 | PathFigureUtil.SyncEllipseFigure(result.Figures[1], bounds, SweepDirection.Counterclockwise);
             }
             else
             {
-                var flag3 = flag1 | result.Figures[1].SetIfDifferent(PathFigure.IsClosedProperty, true) | result.Figures[1].SetIfDifferent(PathFigure.IsFilledProperty, (object)true);
-                var firstPoint = new Point();
-                var intersect = InnerCurveSelfIntersect(radiusX, radiusY, _absoluteThickness);
-                var angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, 360.0, 0.0);
-                flag2 = flag3 | SyncPieceWiseInnerCurves(result.Figures[1], 0, ref firstPoint, angleRanges) | result.Figures[1].SetIfDifferent(PathFigure.StartPointProperty, (object)firstPoint);
+                bool flag3 = flag1 | result.Figures[1].SetIfDifferent(PathFigure.IsClosedProperty, true) | result.Figures[1].SetIfDifferent(PathFigure.IsFilledProperty, true);
+                Point firstPoint = new Point();
+                double intersect = InnerCurveSelfIntersect(radiusX, radiusY, this._absoluteThickness);
+                double[] angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, 360.0, 0.0);
+                flag2 = flag3 | this.SyncPieceWiseInnerCurves(result.Figures[1], 0, ref firstPoint, angleRanges) | result.Figures[1].SetIfDifferent(PathFigure.StartPointProperty, firstPoint);
             }
             return flag2;
         }
 
-        static void IncreaseDuplicatedIndex(IList<double> values, ref int index)
+        private static void IncreaseDuplicatedIndex(IList<double> values, ref int index)
         {
             while (index < values.Count - 1 && values[index] == values[index + 1])
                 ++index;
         }
 
-        static void DecreaseDuplicatedIndex(IList<double> values, ref int index)
+        private static void DecreaseDuplicatedIndex(IList<double> values, ref int index)
         {
             while (index > 0 && values[index] == values[index - 1])
                 --index;
@@ -146,14 +146,9 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 计算角对的列表，并定义应在其中查找弧示例的范围。返回值具有 2、4 或 6 对值，每对值都定义了一个范围，并且它们按顺序从给定的起始角向终止角跨越。在自相交角处将会超出范围。如果起始/终止输入在自相交角之间的无效范围内，则它将移到邻近的自相交范围内。
         /// </summary>
-        internal static double[] ComputeAngleRanges(
-            double radiusX,
-            double radiusY,
-            double intersect,
-            double start,
-            double end)
+        internal static double[] ComputeAngleRanges(double radiusX, double radiusY, double intersect, double start, double end)
         {
-            var doubleList = new List<double>()
+            List<double> doubleList = new List<double>()
             {
                 start,
                 end,
@@ -167,8 +162,8 @@ namespace Cure.WPF.Media
                 720.0 - intersect
             };
             doubleList.Sort();
-            var index1 = doubleList.IndexOf(start);
-            var index2 = doubleList.IndexOf(end);
+            int index1 = doubleList.IndexOf(start);
+            int index2 = doubleList.IndexOf(end);
             if (index2 == index1)
                 ++index2;
             else if (start < end)
@@ -181,25 +176,25 @@ namespace Cure.WPF.Media
                 DecreaseDuplicatedIndex(doubleList, ref index1);
                 IncreaseDuplicatedIndex(doubleList, ref index2);
             }
-            var list = new List<double>();
+            List<double> list = new List<double>();
             if (index1 < index2)
             {
-                for (var index3 = index1; index3 <= index2; ++index3)
+                for (int index3 = index1; index3 <= index2; ++index3)
                     list.Add(doubleList[index3]);
             }
             else
             {
-                for (var index3 = index1; index3 >= index2; --index3)
+                for (int index3 = index1; index3 >= index2; --index3)
                     list.Add(doubleList[index3]);
             }
-            var num = EnsureFirstQuadrant((list[0] + list[1]) / 2.0);
+            double num = EnsureFirstQuadrant((list[0] + list[1]) / 2.0);
             if (radiusX < radiusY && num < intersect || radiusX > radiusY && num > intersect)
                 list.RemoveAt(0);
             if (list.Count % 2 == 1)
                 list.RemoveLast();
             if (list.Count == 0)
             {
-                var index3 = Math.Min(index1, index2) - 1;
+                int index3 = Math.Min(index1, index2) - 1;
                 if (index3 < 0)
                     index3 = Math.Max(index1, index2) + 1;
                 list.Add(doubleList[index3]);
@@ -217,62 +212,76 @@ namespace Cure.WPF.Media
             return angle <= 90.0 ? angle : 180.0 - angle;
         }
 
-        bool UpdatePieGeometry(double start, double end)
+        private bool UpdatePieGeometry(double start, double end)
         {
-            var flag = false;
+            bool flag = false;
             PathFigure dependencyObject1;
-            if (!(CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || (dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 2 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2) || !(dependencyObject1.Segments[1] is LineSegment dependencyObject3))
+            if (!(this.CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || (dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 2 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2) || !(dependencyObject1.Segments[1] is LineSegment))
             {
-                ((PathGeometry)(CachedGeometry = new PathGeometry())).Figures.Add(dependencyObject1 = new PathFigure());
-                dependencyObject2 = new ArcSegment() { SweepDirection = SweepDirection.Clockwise };
+                dependencyObject2 = new ArcSegment()
+                {
+                    SweepDirection = SweepDirection.Clockwise
+                };
+                LineSegment dependencyObject3 = new LineSegment();
+                dependencyObject1 = new PathFigure();
                 dependencyObject1.Segments.Add(dependencyObject2);
-                dependencyObject3 = new LineSegment();
                 dependencyObject1.Segments.Add(dependencyObject3);
+                cachedGeometry = new PathGeometry();
+                cachedGeometry.Figures.Add(dependencyObject1);
+                this.CachedGeometry = cachedGeometry;
                 flag = true;
             }
-            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | dependencyObject2.SetIfDifferent(LineSegment.PointProperty, LogicalBounds.Center());
+            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | dependencyObject2.SetIfDifferent(LineSegment.PointProperty, this.LogicalBounds.Center());
         }
 
-        bool UpdateOpenArcGeometry(double start, double end)
+        private bool UpdateOpenArcGeometry(double start, double end)
         {
-            var flag = false;
+            bool flag = false;
             PathFigure dependencyObject1;
-            if (!(CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || ((dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 1 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2)))
+            if (!(this.CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || (dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 1 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2))
             {
-                ((PathGeometry)(CachedGeometry = new PathGeometry())).Figures.Add(dependencyObject1 = new PathFigure());
-                dependencyObject1.Segments.Add(dependencyObject2 = new ArcSegment());
-                dependencyObject1.IsClosed = false;
-                dependencyObject2.SweepDirection = SweepDirection.Clockwise;
+                dependencyObject2 = new ArcSegment
+                {
+                    SweepDirection = SweepDirection.Clockwise
+                };
+                dependencyObject1 = new PathFigure()
+                {
+                    IsClosed = false
+                };
+                dependencyObject1.Segments.Add(dependencyObject2);
+                cachedGeometry = new PathGeometry();
+                cachedGeometry.Figures.Add(dependencyObject1);
+                this.CachedGeometry = cachedGeometry;
                 flag = true;
             }
-            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, LogicalBounds)) | dependencyObject1.SetIfDifferent(PathFigure.IsFilledProperty, false) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0);
+            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | dependencyObject1.SetIfDifferent(PathFigure.IsFilledProperty, false) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0);
         }
 
-        bool UpdateRingArcGeometry(bool relativeMode, double start, double end)
+        private bool UpdateRingArcGeometry(bool relativeMode, double start, double end)
         {
-            var cachedGeometry = CachedGeometry;
-            var flag11 = GeometryUtil.EnsureGeometryType(out var result1, ref cachedGeometry, () => new PathGeometry());
-            CachedGeometry = cachedGeometry;
-            var flag12 = result1.SetIfDifferent(PathGeometry.FillRuleProperty, FillRule.Nonzero);
-            var flag13 = result1.Figures.EnsureListCount(1, () => new PathFigure());
-            var flag1 = false | flag11 | flag12 | flag13;
-            var figure = result1.Figures[0];
-            var flag2 = flag1 | figure.SetIfDifferent(PathFigure.IsClosedProperty, true) | figure.SetIfDifferent(PathFigure.IsFilledProperty, true) | figure.SetIfDifferent(PathFigure.StartPointProperty, (object)GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | figure.Segments.EnsureListCountAtLeast(3, () => new ArcSegment()) | GeometryUtil.EnsureSegmentType(out var result2, figure.Segments, 0, () => new ArcSegment()) | result2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, LogicalBounds)) | result2.SetIfDifferent(ArcSegment.SizeProperty, new Size(LogicalBounds.Width / 2.0, LogicalBounds.Height / 2.0)) | result2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | result2.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise) | GeometryUtil.EnsureSegmentType(out var result3, figure.Segments, 1, () => new LineSegment());
-            var logicalBounds = LogicalBounds;
-            var radiusX = logicalBounds.Width / 2.0;
-            var radiusY = logicalBounds.Height / 2.0;
+            Geometry cachedGeometry = this.CachedGeometry;
+            bool flag11 = GeometryUtil.EnsureGeometryType(out PathGeometry result1, ref cachedGeometry, () => new PathGeometry());
+            this.CachedGeometry = cachedGeometry;
+            bool flag12 = result1.SetIfDifferent(PathGeometry.FillRuleProperty, FillRule.Nonzero);
+            bool flag13 = result1.Figures.EnsureListCount(1, () => new PathFigure());
+            bool flag1 = false | flag11 | flag12 | flag13;
+            PathFigure figure = result1.Figures[0];
+            bool flag2 = flag1 | figure.SetIfDifferent(PathFigure.IsClosedProperty, true) | figure.SetIfDifferent(PathFigure.IsFilledProperty, true) | figure.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | figure.Segments.EnsureListCountAtLeast(3, () => new ArcSegment()) | GeometryUtil.EnsureSegmentType(out ArcSegment result2, figure.Segments, 0, () => new ArcSegment()) | result2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, this.LogicalBounds)) | result2.SetIfDifferent(ArcSegment.SizeProperty, new Size(this.LogicalBounds.Width / 2.0, this.LogicalBounds.Height / 2.0)) | result2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | result2.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Clockwise) | GeometryUtil.EnsureSegmentType(out LineSegment result3, figure.Segments, 1, () => new LineSegment());
+            Rect logicalBounds = this.LogicalBounds;
+            double radiusX = logicalBounds.Width / 2.0;
+            double radiusY = logicalBounds.Height / 2.0;
             bool flag3;
             if (relativeMode || MathUtil.AreClose(radiusX, radiusY))
             {
-                var bound = LogicalBounds.Resize(1.0 - _relativeThickness);
-                flag3 = flag2 | result3.SetIfDifferent(LineSegment.PointProperty, (object)GeometryUtil.GetArcPoint(end, bound)) | figure.Segments.EnsureListCount(3, () => new ArcSegment()) | GeometryUtil.EnsureSegmentType(out var result4, figure.Segments, 2, () => new ArcSegment()) | result4.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(start, bound)) | result4.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(bound)) | result4.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | result4.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Counterclockwise);
+                Rect bound = this.LogicalBounds.Resize(1.0 - this._relativeThickness);
+                flag3 = flag2 | result3.SetIfDifferent(LineSegment.PointProperty, GeometryUtil.GetArcPoint(end, bound)) | figure.Segments.EnsureListCount(3, () => new ArcSegment()) | GeometryUtil.EnsureSegmentType(out ArcSegment result4, figure.Segments, 2, () => new ArcSegment()) | result4.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(start, bound)) | result4.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(bound)) | result4.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | result4.SetIfDifferent(ArcSegment.SweepDirectionProperty, SweepDirection.Counterclockwise);
             }
             else
             {
-                var firstPoint = new Point();
-                var intersect = InnerCurveSelfIntersect(radiusX, radiusY, this._absoluteThickness);
-                var angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, end, start);
-                flag3 = flag2 | SyncPieceWiseInnerCurves(figure, 2, ref firstPoint, angleRanges) | result3.SetIfDifferent(LineSegment.PointProperty, firstPoint);
+                Point firstPoint = new Point();
+                double intersect = InnerCurveSelfIntersect(radiusX, radiusY, this._absoluteThickness);
+                double[] angleRanges = ComputeAngleRanges(radiusX, radiusY, intersect, end, start);
+                flag3 = flag2 | this.SyncPieceWiseInnerCurves(figure, 2, ref firstPoint, angleRanges) | result3.SetIfDifferent(LineSegment.PointProperty, firstPoint);
             }
             return flag3;
         }
@@ -280,16 +289,16 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 用每对输入角计算内部曲线的所有部分，并将其与多贝塞尔线段连接。新线段根据给定的索引输出到给定的 figure.Segments 列表中。起点是单独输出的。
         /// </summary>
-        bool SyncPieceWiseInnerCurves(PathFigure figure, int index, ref Point firstPoint, params double[] angles)
+        private bool SyncPieceWiseInnerCurves(PathFigure figure, int index, ref Point firstPoint, params double[] angles)
         {
-            var flag1 = false;
-            var length = angles.Length;
-            var logicalBounds = LogicalBounds;
-            var absoluteThickness = _absoluteThickness;
-            var flag2 = flag1 | figure.Segments.EnsureListCount(index + length / 2, () => new PolyBezierSegment());
-            for (var index1 = 0; index1 < length / 2; ++index1)
+            bool flag1 = false;
+            int length = angles.Length;
+            Rect logicalBounds = this.LogicalBounds;
+            double absoluteThickness = this._absoluteThickness;
+            bool flag2 = flag1 | figure.Segments.EnsureListCount(index + length / 2, () => new PolyBezierSegment());
+            for (int index1 = 0; index1 < length / 2; ++index1)
             {
-                var oneInnerCurve = ComputeOneInnerCurve(angles[index1 * 2], angles[index1 * 2 + 1], logicalBounds, absoluteThickness);
+                IList<Point> oneInnerCurve = ComputeOneInnerCurve(angles[index1 * 2], angles[index1 * 2 + 1], logicalBounds, absoluteThickness);
                 if (index1 == 0)
                     firstPoint = oneInnerCurve[0];
                 flag2 |= PathSegmentUtil.SyncPolyBezierSegment(figure.Segments, index + index1, oneInnerCurve, 1, oneInnerCurve.Count - 1);
@@ -300,37 +309,37 @@ namespace Cure.WPF.Media
         /// <summary>
         /// 用给定的角范围计算一段内部曲线，并以多贝塞尔线段形式输出一段平滑曲线。
         /// </summary>
-        static IList<Point> ComputeOneInnerCurve(double start, double end, Rect bounds, double offset)
+        private static IList<Point> ComputeOneInnerCurve(double start, double end, Rect bounds, double offset)
         {
-            var num1 = bounds.Width / 2.0;
-            var num2 = bounds.Height / 2.0;
-            var point1 = bounds.Center();
+            double num1 = bounds.Width / 2.0;
+            double num2 = bounds.Height / 2.0;
+            Point point1 = bounds.Center();
             start = start * Math.PI / 180.0;
             end = end * Math.PI / 180.0;
-            var num3 = Math.PI / 18.0;
-            var capacity = Math.Max(2, (int)Math.Ceiling(Math.Abs(end - start) / num3));
-            var pointList1 = new List<Point>(capacity);
-            var vectorList = new List<Vector>(capacity);
-            var point2 = new Point();
-            var point3 = new Point();
-            var vector1 = new Vector();
-            var vector2 = new Vector();
-            var vector3 = new Vector();
-            var vector4 = new Vector();
-            for (var index = 0; index < capacity; ++index)
+            double num3 = Math.PI / 18.0;
+            int capacity = Math.Max(2, (int)Math.Ceiling(Math.Abs(end - start) / num3));
+            List<Point> pointList1 = new List<Point>(capacity);
+            List<Vector> vectorList = new List<Vector>(capacity);
+            Point point2 = new Point();
+            Point point3 = new Point();
+            Vector vector1 = new Vector();
+            Vector vector2 = new Vector();
+            Vector vector3 = new Vector();
+            Vector vector4 = new Vector();
+            for (int index = 0; index < capacity; ++index)
             {
-                var num4 = MathUtil.Lerp(start, end, (double)index / (capacity - 1));
-                var num5 = Math.Sin(num4);
-                var num6 = Math.Cos(num4);
+                double num4 = MathUtil.Lerp(start, end, (double)index / (capacity - 1));
+                double num5 = Math.Sin(num4);
+                double num6 = Math.Cos(num4);
                 point2.X = point1.X + num1 * num5;
                 point2.Y = point1.Y - num2 * num6;
                 vector1.X = num1 * num6;
                 vector1.Y = num2 * num5;
                 vector2.X = -num2 * num5;
                 vector2.Y = num1 * num6;
-                var d = num2 * num2 * num5 * num5 + num1 * num1 * num6 * num6;
-                var num7 = Math.Sqrt(d);
-                var num8 = 2.0 * num5 * num6 * (num2 * num2 - num1 * num1);
+                double d = num2 * num2 * num5 * num5 + num1 * num1 * num6 * num6;
+                double num7 = Math.Sqrt(d);
+                double num8 = 2.0 * num5 * num6 * (num2 * num2 - num1 * num1);
                 vector3.X = -num2 * num6;
                 vector3.Y = -num1 * num5;
                 point3.X = point2.X + offset * vector2.X / num7;
@@ -340,12 +349,12 @@ namespace Cure.WPF.Media
                 pointList1.Add(point3);
                 vectorList.Add(-vector4.Normalized());
             }
-            var pointList2 = new List<Point>(capacity * 3 + 1) { pointList1[0] };
-            for (var index = 1; index < capacity; ++index)
+            List<Point> pointList2 = new List<Point>(capacity * 3 + 1) { pointList1[0] };
+            for (int index = 1; index < capacity; ++index)
             {
-                var lhs = pointList1[index - 1];
-                var rhs = pointList1[index];
-                var num4 = GeometryUtil.Distance(lhs, rhs) / 3.0;
+                Point lhs = pointList1[index - 1];
+                Point rhs = pointList1[index];
+                double num4 = GeometryUtil.Distance(lhs, rhs) / 3.0;
                 pointList2.Add(lhs + vectorList[index - 1] * num4);
                 pointList2.Add(rhs - vectorList[index] * num4);
                 pointList2.Add(rhs);
@@ -358,21 +367,21 @@ namespace Cure.WPF.Media
         /// </summary>
         internal static double InnerCurveSelfIntersect(double radiusX, double radiusY, double thickness)
         {
-            var angleA1 = 0.0;
-            var angleB = Math.PI / 2.0;
-            var flag = radiusX <= radiusY;
-            var vector = new Vector();
+            double angleA1 = 0.0;
+            double angleB = Math.PI / 2.0;
+            bool flag = radiusX <= radiusY;
+            Vector vector = new Vector();
             while (!AreCloseEnough(angleA1, angleB))
             {
-                var num1 = (angleA1 + angleB) / 2.0;
-                var num2 = Math.Cos(num1);
-                var num3 = Math.Sin(num1);
+                double num1 = (angleA1 + angleB) / 2.0;
+                double num2 = Math.Cos(num1);
+                double num3 = Math.Sin(num1);
                 vector.X = radiusY * num3;
                 vector.Y = radiusX * num2;
                 vector.Normalize();
                 if (flag)
                 {
-                    var num4 = radiusX * num3 - vector.X * thickness;
+                    double num4 = radiusX * num3 - vector.X * thickness;
                     if (num4 > 0.0)
                         angleB = num1;
                     else if (num4 < 0.0)
@@ -380,26 +389,26 @@ namespace Cure.WPF.Media
                 }
                 else
                 {
-                    var num4 = radiusY * num2 - vector.Y * thickness;
+                    double num4 = radiusY * num2 - vector.Y * thickness;
                     if (num4 < 0.0)
                         angleB = num1;
                     else if (num4 > 0.0)
                         angleA1 = num1;
                 }
             }
-            var angleA2 = (angleA1 + angleB) / 2.0;
+            double angleA2 = (angleA1 + angleB) / 2.0;
             if (AreCloseEnough(angleA2, 0.0))
                 return 0.0;
             return !AreCloseEnough(angleA2, Math.PI / 2.0) ? angleA2 * 180.0 / Math.PI : 90.0;
         }
 
-        static bool AreCloseEnough(double angleA, double angleB)
+        private static bool AreCloseEnough(double angleA, double angleB)
             => Math.Abs(angleA - angleB) < 0.001;
 
-        static Size GetArcSize(Rect bound)
+        private static Size GetArcSize(Rect bound)
             => new Size(bound.Width / 2.0, bound.Height / 2.0);
 
-        static double NormalizeAngle(double degree)
+        private static double NormalizeAngle(double degree)
         {
             if (degree < 0.0 || degree > 360.0)
             {
@@ -414,17 +423,17 @@ namespace Cure.WPF.Media
 
         protected override bool UpdateCachedGeometry(IArcGeometrySourceParameters parameters)
         {
-            var flag1 = false;
-            NormalizeThickness(parameters);
-            var relativeMode = parameters.ArcThicknessUnit == UnitType.Percent;
-            var flag2 = MathUtil.AreClose(parameters.StartAngle, parameters.EndAngle);
-            var num = NormalizeAngle(parameters.StartAngle);
-            var end = NormalizeAngle(parameters.EndAngle);
+            bool flag1 = false;
+            this.NormalizeThickness(parameters);
+            bool relativeMode = parameters.ArcThicknessUnit == UnitType.Percent;
+            bool flag2 = MathUtil.AreClose(parameters.StartAngle, parameters.EndAngle);
+            double num = NormalizeAngle(parameters.StartAngle);
+            double end = NormalizeAngle(parameters.EndAngle);
             if (end < num)
                 end += 360.0;
-            var filled = _relativeThickness == 1.0;
-            var flag3 = _relativeThickness == 0.0;
-            return !flag2 ? (!MathUtil.IsVerySmall((end - num) % 360.0) ? (!filled ? (!flag3 ? flag1 | UpdateRingArcGeometry(relativeMode, num, end) : flag1 | UpdateOpenArcGeometry(num, end)) : flag1 | UpdatePieGeometry(num, end)) : (flag3 || filled ? flag1 | UpdateEllipseGeometry(filled) : flag1 | UpdateFullRingGeometry(relativeMode))) : flag1 | UpdateZeroAngleGeometry(relativeMode, num);
+            bool filled = this._relativeThickness == 1.0;
+            bool flag3 = this._relativeThickness == 0.0;
+            return !flag2 ? (!MathUtil.IsVerySmall((end - num) % 360.0) ? (!filled ? (!flag3 ? flag1 | this.UpdateRingArcGeometry(relativeMode, num, end) : flag1 | this.UpdateOpenArcGeometry(num, end)) : flag1 | this.UpdatePieGeometry(num, end)) : (flag3 || filled ? flag1 | this.UpdateEllipseGeometry(filled) : flag1 | this.UpdateFullRingGeometry(relativeMode))) : flag1 | this.UpdateZeroAngleGeometry(relativeMode, num);
         }
 
         #endregion
