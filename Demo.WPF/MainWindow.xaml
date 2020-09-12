@@ -531,9 +531,9 @@
                 </EventTrigger>
             </ToggleButton.Triggers>
         </ToggleButton>
-        <cure:Arc Fill="Orange" Stretch="None" StartAngle="90" EndAngle="120" ArcThicknessUnit="Percent" ArcThickness="0.9"
+        <cure:Arc Fill="Orange" Stretch="None" StartAngle="90" EndAngle="200" ArcThicknessUnit="Percent" ArcThickness="1.0"
                   Width="200" Height="200"/>
-        <cure:Arc Fill="HotPink" Stretch="None" StartAngle="120" EndAngle="360" ArcThicknessUnit="Percent" ArcThickness="0.9"
+        <cure:Arc Fill="HotPink" Stretch="None" StartAngle="120" EndAngle="360" ArcThicknessUnit="Percent" ArcThickness="1.0"
                   Width="200" Height="200"/>
     </Grid>
 </Window>

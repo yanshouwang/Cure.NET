@@ -21,10 +21,20 @@ namespace Cure.WPF.Shapes
     /// </summary>
     public abstract class PrimitiveShape : Shape, IGeometrySourceParameters, IShape
     {
+        #region 字段
+
         private IGeometrySource _geometrySource;
+
+        #endregion
+
+        #region 属性
 
         private IGeometrySource GeometrySource
             => this._geometrySource ??= this.CreateGeometrySource();
+
+        #endregion
+
+        #region 构造
 
         static PrimitiveShape()
         {
@@ -34,12 +44,19 @@ namespace Cure.WPF.Shapes
                 1.0, DrawingPropertyMetadataOptions.AffectsRender));
         }
 
-        private void RealizeGeometry() => RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
+        #endregion
+
+        #region 方法
+
+        private void RealizeGeometry()
+            => RenderedGeometryChanged?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
         /// 通过创建几何图形源来扩展形状的绘制方式。
         /// </summary>
         protected abstract IGeometrySource CreateGeometrySource();
+
+        #endregion
 
         #region 重写
 
@@ -56,7 +73,8 @@ namespace Cure.WPF.Shapes
         ///
         /// 返回的应该是此形状无需剪辑便可正确呈现的最小尺寸。默认情况下，呈现的形状可以小到一个点，因此会返回笔划粗细。
         /// </remarks>
-        protected override Size MeasureOverride(Size constraint) => new Size(base.StrokeThickness, base.StrokeThickness);
+        protected override Size MeasureOverride(Size constraint)
+            => new Size(this.StrokeThickness, this.StrokeThickness);
 
         /// <summary>提供 Silverlight 布局传递的“排列”部分的行为。类可以替代此方法以定义其自己的“排列”传递行为。</summary>
         /// <returns>在布局中排列该元素后使用的实际大小。</returns>

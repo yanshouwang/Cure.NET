@@ -216,13 +216,13 @@ namespace Cure.WPF.Media
         {
             bool flag = false;
             PathFigure dependencyObject1;
-            if (!(this.CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || (dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 2 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2) || !(dependencyObject1.Segments[1] is LineSegment))
+            if (!(this.CachedGeometry is PathGeometry cachedGeometry) || cachedGeometry.Figures.Count != 1 || (dependencyObject1 = cachedGeometry.Figures[0]).Segments.Count != 2 || !(dependencyObject1.Segments[0] is ArcSegment dependencyObject2) || !(dependencyObject1.Segments[1] is LineSegment dependencyObject3))
             {
                 dependencyObject2 = new ArcSegment()
                 {
                     SweepDirection = SweepDirection.Clockwise
                 };
-                LineSegment dependencyObject3 = new LineSegment();
+                dependencyObject3 = new LineSegment();
                 dependencyObject1 = new PathFigure();
                 dependencyObject1.Segments.Add(dependencyObject2);
                 dependencyObject1.Segments.Add(dependencyObject3);
@@ -231,7 +231,7 @@ namespace Cure.WPF.Media
                 this.CachedGeometry = cachedGeometry;
                 flag = true;
             }
-            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | dependencyObject2.SetIfDifferent(LineSegment.PointProperty, this.LogicalBounds.Center());
+            return flag | dependencyObject1.SetIfDifferent(PathFigure.StartPointProperty, GeometryUtil.GetArcPoint(start, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.PointProperty, GeometryUtil.GetArcPoint(end, this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.SizeProperty, GetArcSize(this.LogicalBounds)) | dependencyObject2.SetIfDifferent(ArcSegment.IsLargeArcProperty, end - start > 180.0) | dependencyObject3.SetIfDifferent(LineSegment.PointProperty, this.LogicalBounds.Center());
         }
 
         private bool UpdateOpenArcGeometry(double start, double end)

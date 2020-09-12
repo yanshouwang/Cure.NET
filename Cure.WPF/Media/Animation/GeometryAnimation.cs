@@ -19,7 +19,7 @@ namespace Cure.WPF.Media.Animation
     /// between two values.  The values are determined by the combination of
     /// From, To, or By values that are set on the animation.
     /// </summary>
-    public class GeometryAnimation : GeometryAnimationBase
+    public class GeometryAnimation : BaseGeometryAnimation
     {
         #region 字段
 
@@ -236,6 +236,10 @@ namespace Cure.WPF.Media.Animation
             this._isAnimationFunctionValid = true;
         }
 
+        #endregion
+
+        #region 重写
+
         /// <summary>
         /// Calculates the value this animation believes should be the current value for the property.
         /// </summary>
@@ -262,7 +266,7 @@ namespace Cure.WPF.Media.Animation
         /// output value.
         /// </param>
         /// <returns>The value this animation believes should be the current value for the property.</returns>
-        protected override Geometry GetCurrentValueCore(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
+        protected override Geometry GetCurrentValue(Geometry defaultOriginValue, Geometry defaultDestinationValue, AnimationClock animationClock)
         {
             Debug.Assert(animationClock.CurrentState != ClockState.Stopped);
             if (!this._isAnimationFunctionValid)
@@ -379,15 +383,12 @@ namespace Cure.WPF.Media.Animation
             return AnimationUtil.AddGeometry(geometry1, geometry2);
         }
 
-        #endregion
-
-        #region Freezable
-
         /// <summary>
         /// Creates a copy of this GeometryAnimation
         /// </summary>
         /// <returns>The copy</returns>
-        public new GeometryAnimation Clone() => (GeometryAnimation)base.Clone();
+        public new GeometryAnimation Clone()
+            => (GeometryAnimation)base.Clone();
 
         //
         // Note that we don't override the Clone virtuals (CloneCore, CloneCurrentValueCore,
@@ -403,7 +404,8 @@ namespace Cure.WPF.Media.Animation
         /// Implementation of <see cref="Freezable.CreateInstanceCore">Freezable.CreateInstanceCore</see>.
         /// </summary>
         /// <returns>The new Freezable.</returns>
-        protected override Freezable CreateInstanceCore() => new GeometryAnimation();
+        protected override Freezable CreateInstanceCore()
+            => new GeometryAnimation();
 
         #endregion
     }

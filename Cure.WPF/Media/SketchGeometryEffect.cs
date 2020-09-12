@@ -20,10 +20,12 @@ namespace Cure.WPF.Media
     /// </summary>
     public sealed class SketchGeometryEffect : GeometryEffect
     {
-        private const double EXPECTED_LENGTH_MEAN = 8.0;
-        private const double NORMAL_DISTURB_VARIANCE = 0.5;
-        private const double TANGENT_DISTURB_VARIANCE = 1.0;
-        private const double BSP_LINE_WEIGHT = 0.05;
+        // TODO: 以下常量在反编译出来的代码中并未使用
+
+        //private const double EXPECTED_LENGTH_MEAN = 8.0;
+        //private const double NORMAL_DISTURB_VARIANCE = 0.5;
+        //private const double TANGENT_DISTURB_VARIANCE = 1.0;
+        //private const double BSP_LINE_WEIGHT = 0.05;
 
         /// <summary>
         /// 在创建时使用相同的随机种子以使视觉闪烁保持最小。

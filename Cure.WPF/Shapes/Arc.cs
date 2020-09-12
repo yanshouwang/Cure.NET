@@ -114,11 +114,14 @@ namespace Cure.WPF.Shapes
         #region IGeometrySourceParameters
 
         [SpecialName]
-        Stretch IGeometrySourceParameters.Stretch => this.Stretch;
+        Stretch IGeometrySourceParameters.Stretch
+            => this.Stretch;
         [SpecialName]
-        Brush IGeometrySourceParameters.Stroke => this.Stroke;
+        Brush IGeometrySourceParameters.Stroke
+            => this.Stroke;
         [SpecialName]
-        double IGeometrySourceParameters.StrokeThickness => this.StrokeThickness;
+        double IGeometrySourceParameters.StrokeThickness
+            => this.StrokeThickness;
 
         #endregion
     }
