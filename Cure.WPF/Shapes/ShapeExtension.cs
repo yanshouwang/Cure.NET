@@ -31,5 +31,20 @@ namespace Cure.WPF.Shapes
             Pen obj = (Pen)method.Invoke(shape, null);
             return obj;
         }
+
+        public static void ResetRenderedGeometry(this Shape shape)
+        {
+            System.Type type = shape.GetType();
+            MethodInfo method = type.GetMethod("ResetRenderedGeometry", BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Invoke(shape, null);
+        }
+
+        public static bool IsIdentity(this Transform transform)
+        {
+            System.Type type = transform.GetType();
+            PropertyInfo property = type.GetProperty("IsIdentity", BindingFlags.Instance | BindingFlags.NonPublic);
+            bool obj = (bool)property.GetValue(null);
+            return obj;
+        }
     }
 }

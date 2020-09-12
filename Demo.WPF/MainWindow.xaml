@@ -343,7 +343,6 @@
             M5,6 L5,10 L19,10 L19,6 L5,6 Z
             M5,14 L5,18 L19,18 L19,14 L5,14 Z
         </Geometry>
-        <cure:SketchGeometryEffect x:Key="SketchGeometryEffect"/>
     </Window.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -531,9 +530,8 @@
                 </EventTrigger>
             </ToggleButton.Triggers>
         </ToggleButton>
-        <cure:Arc Fill="Orange" Stretch="None" StartAngle="90" EndAngle="200" ArcThicknessUnit="Percent" ArcThickness="1.0"
-                  Width="200" Height="200"/>
-        <cure:Arc Fill="HotPink" Stretch="None" StartAngle="120" EndAngle="360" ArcThicknessUnit="Percent" ArcThickness="1.0"
-                  Width="200" Height="200"/>
+        <!--<Ellipse Width="400" Height="200" Stretch="Uniform" Fill="Orange"/>-->
+        <cure:Arc Width="400" Height="200" Stretch="Uniform" Fill="HotPink"/>
+        <Ellipse Width="400" Height="200" Stretch="None" Fill="Purple"/>
     </Grid>
 </Window>

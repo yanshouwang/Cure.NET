@@ -8,7 +8,7 @@
 //
 // ---------------------------------------------------------------------------
 
-using System.Runtime.CompilerServices;
+using System;
 using System.Windows;
 using System.Windows.Media;
 using Cure.WPF.Media;
@@ -18,111 +18,220 @@ namespace Cure.WPF.Shapes
     /// <summary>
     /// 呈现弧形，支持 ArcThickness 控制的弧形、环形和饼形模式。
     /// </summary>
-    public sealed class Arc : PrimitiveShape, IArcGeometrySourceParameters, IGeometrySourceParameters
+    public sealed class Arc : Shape
     {
-        #region PrimitiveShape
 
-        protected override IGeometrySource CreateGeometrySource()
-            => new ArcGeometrySource();
-
-        #endregion
-
-        #region IArcGeometrySourceParameters
-
+        #region Constructors
         /// <summary>
-        /// 获取或设置开始角度。
+        /// Instantiates a new instance of a Ellipse.
         /// </summary>
-        /// <value>
-        /// 以度为单位的开始角度。0 度朝上。
-        /// </value>
-        public double StartAngle
+        /// <ExternalAPI/>
+        public Arc()
         {
-            get => (double)this.GetValue(StartAngleProperty);
-            set => this.SetValue(StartAngleProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for StartAngle.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty StartAngleProperty =
-            DependencyProperty.Register(
-                nameof(StartAngle),
-                typeof(double),
-                typeof(Arc),
-                new DrawingPropertyMetadata(0.0, DrawingPropertyMetadataOptions.AffectsRender));
-
-        /// <summary>
-        /// 获取或设置结束角度。
-        /// </summary>
-        /// <value>
-        /// 以度为单位的结束角度。0 度朝上。
-        /// </value>
-        public double EndAngle
+        // The default stretch mode of Ellipse is Fill
+        static Arc()
         {
-            get => (double)this.GetValue(EndAngleProperty);
-            set => this.SetValue(EndAngleProperty, value);
+            StretchProperty.OverrideMetadata(typeof(Arc), new FrameworkPropertyMetadata(Stretch.Fill));
         }
 
-        // Using a DependencyProperty as the backing store for EndAngle.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty EndAngleProperty =
-            DependencyProperty.Register(
-                nameof(EndAngle),
-                typeof(double),
-                typeof(Arc),
-                new DrawingPropertyMetadata(90.0, DrawingPropertyMetadataOptions.AffectsRender));
+        #endregion Constructors
+
+        #region Dynamic Properties
+
+        // For an Ellipse, RenderedGeometry = defining geometry and GeometryTransform = Identity
 
         /// <summary>
-        /// 获取或设置弧粗细。
+        /// The RenderedGeometry property returns the final rendered geometry
         /// </summary>
-        /// <value>
-        /// 弧粗细以像素或百分比为单位，具体取决于“ArcThicknessUnit”。
-        /// </value>
-        public double ArcThickness
+        public override Geometry RenderedGeometry
         {
-            get => (double)this.GetValue(ArcThicknessProperty);
-            set => this.SetValue(ArcThicknessProperty, value);
+            get
+            {
+                // RenderedGeometry = defining geometry
+                return DefiningGeometry;
+            }
         }
-
-        // Using a DependencyProperty as the backing store for ArcThickness.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ArcThicknessProperty =
-            DependencyProperty.Register(
-                nameof(ArcThickness),
-                typeof(double),
-                typeof(Arc),
-                new DrawingPropertyMetadata(0.0, DrawingPropertyMetadataOptions.AffectsRender));
 
         /// <summary>
-        /// 获取或设置弧粗细单位。
+        /// Return the transformation applied to the geometry before rendering
         /// </summary>
-        /// <value>
-        /// 弧粗细单位（像素或百分比）。
-        /// </value>
-        public UnitType ArcThicknessUnit
+        public override Transform GeometryTransform
         {
-            get => (UnitType)this.GetValue(ArcThicknessUnitProperty);
-            set => this.SetValue(ArcThicknessUnitProperty, value);
+            get
+            {
+                return Transform.Identity;
+            }
         }
 
-        // Using a DependencyProperty as the backing store for ArcThicknessUnit.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ArcThicknessUnitProperty =
-            DependencyProperty.Register(
-                nameof(ArcThicknessUnit),
-                typeof(UnitType),
-                typeof(Arc),
-                new DrawingPropertyMetadata(UnitType.Pixel, DrawingPropertyMetadataOptions.AffectsRender));
+        #endregion Dynamic Properties
 
-        #endregion
+        #region Protected
 
-        #region IGeometrySourceParameters
+        /// <summary>
+        /// Updates DesiredSize of the Ellipse.  Called by parent UIElement.  This is the first pass of layout.
+        /// </summary>
+        /// <param name="constraint">Constraint size is an "upper limit" that Ellipse should not exceed.</param>
+        /// <returns>Ellipse's desired size.</returns>
+        protected override Size MeasureOverride(Size constraint)
+        {
+            if (Stretch == Stretch.UniformToFill)
+            {
+                double width = constraint.Width;
+                double height = constraint.Height;
 
-        [SpecialName]
-        Stretch IGeometrySourceParameters.Stretch
-            => this.Stretch;
-        [SpecialName]
-        Brush IGeometrySourceParameters.Stroke
-            => this.Stroke;
-        [SpecialName]
-        double IGeometrySourceParameters.StrokeThickness
-            => this.StrokeThickness;
+                if (Double.IsInfinity(width) && Double.IsInfinity(height))
+                {
+                    return GetNaturalSize();
+                }
+                else if (Double.IsInfinity(width) || Double.IsInfinity(height))
+                {
+                    width = Math.Min(width, height);
+                }
+                else
+                {
+                    width = Math.Max(width, height);
+                }
 
-        #endregion
+                return new Size(width, width);
+            }
+
+            return GetNaturalSize();
+        }
+
+        /// <summary>
+        /// Returns the final size of the shape and caches the bounds.
+        /// </summary>
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            // We construct the rectangle to fit finalSize with the appropriate Stretch mode.  The rendering
+            // transformation will thus be the identity.
+
+            double penThickness = GetStrokeThickness();
+            double margin = penThickness / 2;
+
+            _rect = new Rect(
+                margin, // X
+                margin, // Y
+                Math.Max(0, finalSize.Width - penThickness),    // Width
+                Math.Max(0, finalSize.Height - penThickness));  // Height
+
+            switch (Stretch)
+            {
+                case Stretch.None:
+                    // A 0 Rect.Width and Rect.Height rectangle
+                    _rect.Width = _rect.Height = 0;
+                    break;
+
+                case Stretch.Fill:
+                    // The most common case: a rectangle that fills the box.
+                    // _rect has already been initialized for that.
+                    break;
+
+                case Stretch.Uniform:
+                    // The maximal square that fits in the final box
+                    if (_rect.Width > _rect.Height)
+                    {
+                        _rect.Width = _rect.Height;
+                    }
+                    else  // _rect.Width <= _rect.Height
+                    {
+                        _rect.Height = _rect.Width;
+                    }
+                    break;
+
+                case Stretch.UniformToFill:
+
+                    // The minimal square that fills the final box
+                    if (_rect.Width < _rect.Height)
+                    {
+                        _rect.Width = _rect.Height;
+                    }
+                    else  // _rect.Width >= _rect.Height
+                    {
+                        _rect.Height = _rect.Width;
+                    }
+                    break;
+            }
+
+            ResetRenderedGeometry();
+
+            return finalSize;
+        }
+
+        /// <summary>
+        /// Get the ellipse that defines this shape
+        /// </summary>
+        protected override Geometry DefiningGeometry
+        {
+            get
+            {
+                if (_rect.IsEmpty)
+                {
+                    return Geometry.Empty;
+                }
+
+                return new EllipseGeometry(_rect);
+            }
+        }
+
+        /// <summary>
+        /// Render callback.
+        /// </summary>
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            if (!_rect.IsEmpty)
+            {
+                Pen pen = GetPen();
+                drawingContext.DrawGeometry(Fill, pen, new EllipseGeometry(_rect));
+            }
+        }
+
+        #endregion Protected
+
+        #region Internal Methods
+
+        internal override void CacheDefiningGeometry()
+        {
+            double margin = GetStrokeThickness() / 2;
+
+            _rect = new Rect(margin, margin, 0, 0);
+        }
+
+        /// <summary>
+        /// Get the natural size of the geometry that defines this shape
+        /// </summary>
+        internal override Size GetNaturalSize()
+        {
+            double strokeThickness = GetStrokeThickness();
+            return new Size(strokeThickness, strokeThickness);
+        }
+
+        /// <summary>
+        /// Get the bonds of the rectangle that defines this shape
+        /// </summary>
+        internal override Rect GetDefiningGeometryBounds()
+        {
+            return _rect;
+        }
+
+        //
+        //  This property
+        //  1. Finds the correct initial size for the _effectiveValues store on the current DependencyObject
+        //  2. This is a performance optimization
+        //
+        //internal override int EffectiveValuesInitialSize
+        //{
+        //    get { return 13; }
+        //}
+
+        #endregion Internal Methods
+
+        #region Private Fields
+
+        private Rect _rect = Rect.Empty;
+
+        #endregion Private Fields
     }
 }
